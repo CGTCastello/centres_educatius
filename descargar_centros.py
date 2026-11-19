@@ -9,6 +9,7 @@ Uso:
     python3 descargar_centros.py                 # Castellón (12)
     python3 descargar_centros.py --provincia 46  # Valencia
     python3 descargar_centros.py --provincia 3   # Alicante
+    python3 descargar_centros.py --idioma val    # datos en valencià (para la web)
 
 Genera en ./datos/:
     centros_<prov>.csv   -> una fila por centro, columnas planas (abre en Excel)
@@ -133,7 +134,7 @@ def fila(c, det):
     row["programa_linguistico"] = "; ".join(
         f"{p['nivel']}: {p['programa']} (VAL {p.get('porcVal')}% / CAS {p.get('porcCas')}% / ING {p.get('porcIng')}%)"
         for p in det["programa_linguistico"])
-    row["ficha"] = f"https://ceice.gva.es/xacen-frontend/centro?codigoCentro={c['codCentro']}"
+    row["ficha"] = f"https://xacen.gva.es/xacen-frontend/centro?codigoCentro={c['codCentro']}"
     return row
 
 
@@ -141,7 +142,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provincia", default="12", help="3 Alicante, 12 Castellón, 46 Valencia")
     ap.add_argument("--limite", type=int, default=0, help="solo los N primeros (para pruebas)")
+    ap.add_argument("--idioma", default="es", choices=["es", "val"],
+                    help="es: castellano (CSV + JSON); val: valencià (solo JSON, lo usa la web)")
     args = ap.parse_args()
+    global IDIOMA
+    IDIOMA = args.idioma
 
     out = Path(__file__).parent / "datos"
     out.mkdir(exist_ok=True)
@@ -162,7 +167,12 @@ def main():
     filas = [fila(c, d) for c, d in zip(centros, detalles)]
     filas.sort(key=lambda r: (r["localidad"] or "", r["denominacion"] or ""))
 
-    p = args.provincia
+    p = args.provincia if IDIOMA == "es" else f"{args.provincia}_val"
+    if IDIOMA != "es":
+        with open(out / f"centros_{p}.json", "w", encoding="utf-8") as f:
+            json.dump([{"lista": c, **d} for c, d in zip(centros, detalles)], f, ensure_ascii=False, indent=1)
+        print(f"Hecho: {out}/centros_{p}.json ({len(centros)} centros)")
+        return
     with open(out / f"centros_{p}.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=list(filas[0].keys()), delimiter=";")
         w.writeheader()

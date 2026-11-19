@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de centres educatius · CGT Castelló</title>
+<meta name="description" content="Mapa i fitxes dels centres educatius de la província de Castelló: menjador, transport, banc de llibres, jornada, ensenyaments i més.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="estil.css?v=4">
+</head>
+<body data-vista="mapa">
+
+<div class="app">
+  <!-- Barra superior (sin cabecera: va dentro de un iframe) -->
+  <div class="barra">
+    <div class="recompte">
+      <span class="recompte__xifra" id="recompte">—</span>
+      <span class="recompte__text">centres<br><span id="recompte-total">de —</span></span>
+    </div>
+    <nav class="pestanyes" role="tablist" aria-label="Vista">
+      <button role="tab" data-vista="mapa" aria-selected="true">Mapa</button>
+      <button role="tab" data-vista="llistat" class="nomes-mobil">Llistat</button>
+      <button role="tab" data-vista="taula">Taula</button>
+    </nav>
+    <button class="boto boto--filtres" id="obre-filtres" aria-controls="filtres" aria-expanded="false">
+      Filtres <span class="boto__n" id="n-filtres" hidden>0</span>
+    </button>
+  </div>
+
+  <div class="cos">
+    <!-- Filtros -->
+    <aside class="filtres" id="filtres" aria-label="Filtres">
+      <div class="filtres__cap">
+        <span class="kicker">Filtres</span>
+        <button class="enllac" id="neteja">Netejar</button>
+        <button class="tanca nomes-mobil" id="tanca-filtres" aria-label="Tancar filtres">✕</button>
+      </div>
+      <div class="filtres__scroll">
+        <label class="camp">
+          <span class="camp__lbl">Cerca</span>
+          <input type="search" id="cerca" placeholder="Nom, municipi, codi, adreça…" autocomplete="off">
+        </label>
+
+        <fieldset class="grup">
+          <legend>Règim</legend>
+          <div class="xips" id="f-regim"></div>
+        </fieldset>
+
+        <div class="camps2">
+          <label class="camp">
+            <span class="camp__lbl">Comarca</span>
+            <select id="f-comarca"><option value="">Totes</option></select>
+          </label>
+          <label class="camp">
+            <span class="camp__lbl">Municipi</span>
+            <select id="f-municipi"><option value="">Tots</option></select>
+          </label>
+        </div>
+
+        <fieldset class="grup">
+          <legend>Serveis i programes</legend>
+          <p class="ajuda">Mostra només els centres que tenen <strong>tot</strong> el que marques.</p>
+          <div class="opcions" id="f-flags"></div>
+        </fieldset>
+
+        <fieldset class="grup">
+          <legend>Ensenyament</legend>
+          <div class="opcions" id="f-etapes"></div>
+        </fieldset>
+
+        <fieldset class="grup">
+          <legend>Tipus de centre</legend>
+          <div class="opcions" id="f-tipus"></div>
+        </fieldset>
+
+        <fieldset class="grup">
+          <legend>Instal·lacions</legend>
+          <div class="opcions" id="f-inst"></div>
+        </fieldset>
+
+        <p class="font">Font: <span id="font-dades"></span>. Dades del <span id="data-dades"></span>.</p>
+      </div>
+      <div class="filtres__peu nomes-mobil">
+        <button class="boto boto--roig" id="aplica-filtres">Veure <span id="n-aplica">0</span> centres</button>
+      </div>
+    </aside>
+
+    <!-- Mapa + panel -->
+    <main class="principal">
+      <section class="vista-mapa" aria-label="Mapa">
+        <div id="mapa"></div>
+        <div class="llegenda" aria-hidden="true">
+          <span><i class="m m--public"></i>Públic</span>
+          <span><i class="m m--concertat"></i>Concertat</span>
+          <span><i class="m m--privat"></i>Privat</span>
+        </div>
+      </section>
+
+      <section class="panell" id="panell" aria-live="polite"></section>
+
+      <section class="vista-taula" aria-label="Taula">
+        <div class="taula-eines">
+          <div class="desplegable" id="columnes">
+            <button class="boto" aria-expanded="false" aria-controls="columnes-menu">Columnes</button>
+            <div class="desplegable__menu" id="columnes-menu" hidden></div>
+          </div>
+          <span class="espai"></span>
+          <button class="boto" id="exporta-csv">Exportar CSV</button>
+          <button class="boto boto--roig" id="exporta-pdf">Exportar PDF</button>
+        </div>
+        <div class="taula-scroll">
+          <table class="taula" id="taula"><thead></thead><tbody></tbody></table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="avis" id="avis" role="status" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+<script src="pdf.js?v=4" defer></script>
+<script src="app.js?v=4" defer></script>
+</body>
+</html>
