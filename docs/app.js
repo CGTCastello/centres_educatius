@@ -539,7 +539,9 @@
           <span class="kicker">${esc(r.curt)} · ${esc(c._muni)}</span>
           <h1>${esc(c._nom)}</h1>
           <p class="fitxa__adreca">${ic("pin", "ic--s")}<span>${esc(c.adreca)}, ${esc(c.cp)} ${esc(c._muni)}${c._dist != null ? ` · <b>a ${km(c._dist)}</b>` : ""}</span></p>
-          ${c.telefon ? `<p class="fitxa__adreca">${ic("telefon", "ic--s")}<span>${esc(c.telefon)}</span></p>` : ""}
+          ${c.telefon ? `<p class="fitxa__adreca">${ic("telefon", "ic--s")}<a href="tel:${esc(c.telefon)}">${esc(c.telefon)}</a></p>` : ""}
+          ${c.correu ? `<p class="fitxa__adreca">${ic("correu", "ic--s")}<a href="mailto:${esc(c.correu)}">${esc(c.correu)}</a></p>` : ""}
+          ${c.web ? `<p class="fitxa__adreca">${ic("web", "ic--s")}<a href="${esc(c.web)}" target="_blank" rel="noopener">${esc(c.web.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a></p>` : ""}
         </header>
         ${accions ? `<div class="accions">${accions}</div>` : ""}
 
