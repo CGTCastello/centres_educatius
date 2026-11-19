@@ -357,7 +357,7 @@ body[data-vista="taula"] .vista-taula { display: flex; }
 
 /* Punts rodons al mapa, la llegenda i el llistat (petició expressa) */
 .m { border-radius: 50% !important; }
-.fitxa__adreca a { overflow-wrap: anywhere; }
+.fitxa__adreca span { overflow-wrap: anywhere; }
 
 /* Fila principal: on i règim */
 .eines__fila--on { flex-wrap: wrap; }
