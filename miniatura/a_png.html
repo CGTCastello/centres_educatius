@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>Miniatura a PNG</title>
+<body style="margin:0;background:#edebe7">
+<img id="i" src="miniatura.svg" width="1200" height="630" style="display:block">
+<script>
+// Converteix l'SVG a PNG (1200x630) i el descarrega
+window.aPNG = async (escala = 1) => {
+  const img = document.getElementById("i");
+  await img.decode();
+  await new Promise((r) => setTimeout(r, 500));
+  const c = document.createElement("canvas");
+  c.width = 1200 * escala; c.height = 630 * escala;
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((r) => c.toBlob(r, "image/png"));
+};
+</script>
