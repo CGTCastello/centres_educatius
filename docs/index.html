@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="estil.css?v=15">
+<link rel="stylesheet" href="estil.css?v=16">
 </head>
 <body data-vista="mapa">
 
@@ -39,6 +39,7 @@
         <button role="tab" data-vista="mapa" aria-selected="true">Mapa</button>
         <button role="tab" data-vista="llistat" class="nomes-mobil" aria-selected="false">Llistat</button>
         <button role="tab" data-vista="taula" aria-selected="false">Taula</button>
+        <button role="tab" data-vista="xifres" aria-selected="false">Xifres</button>
       </nav>
     </div>
 
@@ -90,6 +91,8 @@
 
     <section class="panell" id="panell" aria-live="polite"></section>
 
+    <section class="vista-xifres" id="xifres" aria-label="Xifres"></section>
+
     <section class="vista-taula" aria-label="Taula">
       <div class="taula-eines">
         <p class="taula-eines__txt">Hi ha <b id="n-taula">0</b> centres amb els filtres actuals. Fes clic en una fila per a veure'n la fitxa.</p>
@@ -128,11 +131,12 @@
 </aside>
 
 <div class="avis" id="avis" role="status" hidden></div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
-<script src="pdf.js?v=15" defer></script>
-<script src="app.js?v=15" defer></script>
+<script src="pdf.js?v=16" defer></script>
+<script src="app.js?v=16" defer></script>
 </body>
 </html>

@@ -410,3 +410,64 @@ body[data-vista="taula"] .vista-taula { display: flex; }
   .actius:empty { display: none; }
   .llegenda { display: none; }
 }
+
+/* ---------- Xifres ---------- */
+.vista-xifres { display: none; overflow-y: auto; min-height: 0; min-width: 0; grid-column: 1 / -1; background: var(--blanc); }
+body[data-vista="xifres"] .cos { grid-template-columns: 1fr; }
+body[data-vista="xifres"] .vista-mapa, body[data-vista="xifres"] .panell, body[data-vista="xifres"] .vista-taula { display: none; }
+body[data-vista="xifres"] .vista-xifres { display: block; }
+.xifres { padding: 18px 16px 32px; max-width: 1240px; margin: 0 auto; }
+.xifres__intro { margin: 0 0 14px; color: var(--gris-web); font-size: 14px; }
+.xifres__intro b { color: var(--negre); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+.kpi { border: 2px solid var(--negre); padding: 14px 16px 12px; }
+.kpi b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 46px; line-height: 1; color: var(--negre); }
+.kpi:first-child b { color: var(--roig); }
+.kpi span { display: block; margin-top: 6px; font-weight: 700; font-size: 13.5px; color: var(--gris-web); }
+.targetes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.targeta { border-top: var(--linia) solid var(--negre); padding: 12px 0 18px; min-width: 0; }
+.targeta--ampla { grid-column: 1 / -1; }
+.targeta h3 { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; font-size: 22px; line-height: 1.05; margin: 0; color: var(--negre); }
+.targeta__sub { margin: 3px 0 10px; font-size: 13px; color: var(--gris-web); }
+.targeta h3 + .barres, .targeta h3 + .xllegenda { margin-top: 10px; }
+
+.barres { display: flex; flex-direction: column; }
+.barra {
+  display: grid; grid-template-columns: var(--lbl, 170px) 1fr 64px; align-items: center; gap: 10px;
+  width: 100%; min-height: 30px; padding: 3px 0; background: none; border: 0; text-align: left; cursor: pointer;
+}
+.barra:not([data-filtra]) { cursor: default; }
+.barra__lbl { font-size: 13.5px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.barra__pista { position: relative; display: flex; height: 16px; }
+.barra__fons { position: absolute; inset: 0; background: var(--linia-web); }
+.barra__val { position: relative; display: block; height: 100%; background: var(--roig); min-width: 2px; }
+.barra__num { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; color: var(--negre); }
+.barra[data-filtra]:hover .barra__lbl, .barra[data-filtra]:focus-visible .barra__lbl { color: var(--roig); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.barra[aria-pressed="true"] .barra__lbl { font-weight: 800; }
+.barra[aria-pressed="true"] .barra__lbl::before { content: "● "; color: var(--roig); }
+.barra__pista--apilada { gap: 2px; min-width: 2px; }
+.seg { display: block; height: 100%; min-width: 2px; }
+.seg--public { background: var(--roig); }
+.seg--concertat { background: var(--negre); }
+.seg--privat { background: #8a8984; }
+.xllegenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+.xllegenda span { display: inline-flex; align-items: center; gap: 6px; }
+.xllegenda .seg { width: 12px; height: 12px; }
+.xllegenda b { font-weight: 800; }
+.segmentada { display: flex; gap: 2px; height: 28px; margin: 10px 0 10px; }
+.segmentada__part { border: 0; padding: 0 0 0 8px; display: flex; align-items: center; cursor: pointer; min-width: 2px; }
+.segmentada__part b { font-size: 13px; font-weight: 800; color: var(--blanc); }
+.segmentada__part.seg--privat b { color: var(--negre); }
+.segmentada__part:hover, .segmentada__part:focus-visible { outline: 2px solid var(--groc); outline-offset: -2px; }
+.tip {
+  position: fixed; z-index: 3500; pointer-events: none; max-width: 280px;
+  background: var(--negre); color: var(--blanc); font-size: 13px; font-weight: 700; padding: 7px 10px; line-height: 1.35;
+}
+@media (max-width: 900px) { .targetes { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpi b { font-size: 34px; }
+  .xifres { padding: 14px 12px 28px; }
+  .barra { grid-template-columns: minmax(96px, 38%) 1fr 48px; gap: 8px; }
+  .pestanyes button { padding: 0 8px; font-size: 15px; }
+}

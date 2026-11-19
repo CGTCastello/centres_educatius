@@ -43,6 +43,9 @@ Página en valencià con el estilo de CGT Castelló, pensada para ir dentro de u
   **fitxa** de cada centro: cómo llegar, llamar, web, servicios, qué se estudia,
   horario, lenguas de enseñanza, etc. Descargable en **PDF**.
 - **Taula** con los centros filtrados, columnas a elegir, exportable a **CSV** y **PDF**.
+- **Xifres**: estadísticas de los centros filtrados (centros, plazas, unidades,
+  % públicos, règim, servicios, comarca, etapa, plazas por etapa, tipo de centro y
+  municipios con más centros). Al hacer clic en una barra se aplica ese filtro.
 - Enlace directo a un centro: `…/#centre=12000091`.
 
 ### Actualizar los datos

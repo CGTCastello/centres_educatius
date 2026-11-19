@@ -285,6 +285,7 @@
     if (estat.sel && !filtrats.some((c) => c.codi === estat.sel)) desselecciona(false);
     if (!estat.sel) pintaLlistat();
     pintaTaula();
+    pintaXifres();
   }
 
   // ---------- Cerca amb suggeriments ----------
@@ -621,6 +622,117 @@
   }
   function desaCols() { try { localStorage.setItem("cgt-centres-cols", JSON.stringify([...estat.cols])); } catch (_) { /* */ } }
 
+
+  // ---------- Xifres ----------
+  const ETAPA_NIVELL = [
+    ["Infantil 0-3", /INFANTIL PRIMER CICLE|ESCOLES LLAR/], ["Infantil 3-6", /INFANTIL SEGON CICLE/],
+    ["Primària", /PRIM[ÀA]RIA/], ["ESO", /SECUND[ÀA]RIA OBLIGAT/], ["Batxillerat", /BATXILLERAT/],
+    ["Formació professional", /CICLES FORMATIUS(?! D'ARTS)|M[ÒO]DULS|FORMACI[ÓO] PROFESSIONAL/],
+    ["Educació especial", /EDUCACI[ÓO] ESPECIAL/], ["Persones adultes", /ADULTS/],
+    ["Música i dansa", /M[ÚU]SICA|DANSA/], ["Arts i disseny", /ARTS|DISSENY|ART[ÍI]STIQUES/],
+    ["Ensenyances esportives", /ESPORTIVES/], ["Idiomes", /^IDIOMES/],
+  ];
+  const XIF_SERVEIS = ["menjador_aut", "transport", "banc_llibres", "jornada_continua", "aula_2anys", "cafeteria", "cursos_estiu", "internat"];
+  const fmt = (n) => Number(n).toLocaleString("ca-ES");
+  const pct = (n, t) => (t ? Math.round((n / t) * 100) : 0);
+  const compte = (arr, clau) => { const m = new Map(); arr.forEach((c) => { const k = clau(c); m.set(k, (m.get(k) || 0) + 1); }); return m; };
+
+  // Barres d'una sola sèrie (un color: roig)
+  function barres(files, { filtra, max, sufix = "", ample = 170 } = {}) {
+    const top = max ?? Math.max(1, ...files.map((f) => f.n));
+    return `<div class="barres" style="--lbl:${ample}px">${files.map((f) => `
+      <button class="barra" type="button"${filtra ? ` data-filtra="${filtra}" data-valor="${esc(f.k)}"` : ""} data-tip="${esc(`${f.l}: ${f.tip || fmt(f.n) + sufix}`)}"${f.actiu ? ' aria-pressed="true"' : ""}>
+        <span class="barra__lbl">${esc(f.l)}</span>
+        <span class="barra__pista">${f.pista ? '<i class="barra__fons"></i>' : ""}<i class="barra__val" style="width:${(f.n / top) * 100}%"></i></span>
+        <span class="barra__num">${esc(f.txt || fmt(f.n))}</span>
+      </button>`).join("")}</div>`;
+  }
+  // Barres apilades per règim
+  function barresRegim(files, { filtra, ample = 170 } = {}) {
+    const top = Math.max(1, ...files.map((f) => f.total));
+    return `<div class="barres" style="--lbl:${ample}px">${files.map((f) => `
+      <button class="barra" type="button" data-filtra="${filtra}" data-valor="${esc(f.k)}" data-tip="${esc(`${f.l}: ${f.total} centres · ${REGIMS.map((r) => `${r.curt} ${f.per[r.k] || 0}`).join(" · ")}`)}"${f.actiu ? ' aria-pressed="true"' : ""}>
+        <span class="barra__lbl">${esc(f.l)}</span>
+        <span class="barra__pista barra__pista--apilada" style="width:${(f.total / top) * 100}%">${REGIMS.map((r) => (f.per[r.k] ? `<i class="seg seg--${r.cls}" style="flex:${f.per[r.k]}"></i>` : "")).join("")}</span>
+        <span class="barra__num">${fmt(f.total)}</span>
+      </button>`).join("")}</div>`;
+  }
+  const llegendaRegim = () => `<div class="xllegenda">${REGIMS.map((r) => `<span><i class="seg seg--${r.cls}"></i>${r.curt}</span>`).join("")}</div>`;
+  const targeta = (titol, sub, cos, ampla) => `<section class="targeta${ampla ? " targeta--ampla" : ""}"><h3>${esc(titol)}</h3>${sub ? `<p class="targeta__sub">${sub}</p>` : ""}${cos}</section>`;
+
+  function pintaXifres() {
+    if (document.body.dataset.vista !== "xifres") return;
+    const el = $("#xifres");
+    const F = filtrats, N = F.length;
+    if (!N) {
+      el.innerHTML = `<div class="buit"><span class="etiqueta">Cap centre</span><h3>No hi ha xifres</h3><p>Cap centre compleix tots els filtres alhora. Prova a llevar-ne algun.</p><button class="boto" data-accio="neteja">Netejar els filtres</button></div>`;
+      return;
+    }
+    const llocs = F.reduce((a, c) => a + (c.llocs || 0), 0);
+    const unitats = F.reduce((a, c) => a + (c.unitats || 0), 0);
+    const perRegim = compte(F, (c) => c.regim);
+    const publics = perRegim.get("Públic") || 0;
+
+    // Segmentada per règim
+    const seg = `<div class="segmentada" role="img" aria-label="${esc(REGIMS.map((r) => `${r.curt}: ${perRegim.get(r.k) || 0}`).join(", "))}">${REGIMS.map((r) => {
+      const n = perRegim.get(r.k) || 0, p = pct(n, N);
+      return n ? `<button type="button" class="segmentada__part seg--${r.cls}" style="flex:${n}" data-filtra="regim" data-valor="${esc(r.k)}" data-tip="${esc(`${r.curt}: ${n} centres (${p}%)`)}">${p >= 9 ? `<b>${p}%</b>` : ""}</button>` : "";
+    }).join("")}</div>
+    <div class="xllegenda">${REGIMS.map((r) => `<span><i class="seg seg--${r.cls}"></i>${r.curt} <b>${fmt(perRegim.get(r.k) || 0)}</b></span>`).join("")}</div>`;
+
+    // Serveis (% dels centres filtrats)
+    const serveis = barres(XIF_SERVEIS.map((k) => {
+      const n = F.filter((c) => c.f[k]).length;
+      return { k, l: flag(k).curt === "Menjador" ? "Menjador autoritzat" : flag(k).curt, n: pct(n, N), txt: `${pct(n, N)}%`, tip: `${fmt(n)} de ${fmt(N)} centres (${pct(n, N)}%)`, pista: true, actiu: estat.flags.has(k) };
+    }), { filtra: "flags", max: 100 });
+
+    // Comarques apilades
+    const perCom = new Map();
+    F.forEach((c) => { const o = perCom.get(c.comarca) || { k: c.comarca, l: c._comarca, total: 0, per: {} }; o.total++; o.per[c.regim] = (o.per[c.regim] || 0) + 1; perCom.set(c.comarca, o); });
+    const comarques = [...perCom.values()].sort((a, b) => b.total - a.total).map((o) => ({ ...o, actiu: estat.comarca === o.k }));
+
+    // Etapes
+    const etapes = ETAPES.map((e) => ({ k: e, l: e, n: F.filter((c) => c.etapes.includes(e)).length, actiu: estat.etapes.has(e) })).filter((f) => f.n);
+
+    // Llocs per etapa
+    const llocsEtapa = new Map();
+    F.forEach((c) => c.nivells.forEach(([nom, , ll]) => {
+      const e = ETAPA_NIVELL.find(([, rx]) => rx.test(nom.toUpperCase()));
+      if (e && ll) llocsEtapa.set(e[0], (llocsEtapa.get(e[0]) || 0) + ll);
+    }));
+    const llocsFiles = ETAPES.filter((e) => llocsEtapa.get(e)).map((e) => ({ k: e, l: e, n: llocsEtapa.get(e), tip: `${fmt(llocsEtapa.get(e))} llocs actius` }));
+
+    // Tipus i municipis
+    const tipus = [...compte(F, (c) => c.tipus)].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({ k, l: k, n, actiu: estat.tipus.has(k) }));
+    const munis = [...compte(F, (c) => c.municipi)].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ca")).slice(0, 10).map(([k, n]) => ({ k, l: bonic(k), n, actiu: estat.municipi === k }));
+
+    el.innerHTML = `
+      <div class="xifres">
+        <p class="xifres__intro">Xifres dels <b>${fmt(N)}</b> centres que compleixen els filtres. Fes clic en una barra per a filtrar.</p>
+        <div class="kpis">
+          <div class="kpi"><b>${fmt(N)}</b><span>centres</span></div>
+          <div class="kpi"><b>${fmt(llocs)}</b><span>llocs escolars actius</span></div>
+          <div class="kpi"><b>${fmt(unitats)}</b><span>unitats actives</span></div>
+          <div class="kpi"><b>${pct(publics, N)}%</b><span>són públics</span></div>
+        </div>
+        <div class="targetes">
+          ${targeta("Per règim", "Centres públics, concertats i privats", seg, true)}
+          ${targeta("Serveis", "Percentatge de centres que en tenen", serveis)}
+          ${targeta("Per comarca", "Centres per comarca i règim", llegendaRegim() + barresRegim(comarques, { filtra: "comarca", ample: 130 }))}
+          ${targeta("Per etapa", "Centres que imparteixen cada etapa", barres(etapes, { filtra: "etapes" }))}
+          ${targeta("Llocs escolars per etapa", "Llocs actius autoritzats", barres(llocsFiles))}
+          ${targeta("Tipus de centre", "", barres(tipus, { filtra: "tipus", ample: 190 }))}
+          ${targeta("Municipis amb més centres", N > 10 ? "Els 10 primers" : "", barres(munis, { filtra: "municipi", ample: 150 }))}
+        </div>
+        <p class="font">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}. Els llocs i les unitats són els actius autoritzats per Conselleria.</p>
+      </div>`;
+  }
+  function filtraDesDeXifres(grup, v) {
+    if (grup === "comarca") { estat.comarca = estat.comarca === v ? "" : v; estat.municipi = ""; mostrats = LIMIT; return aplica(); }
+    if (grup === "municipi") { estat.municipi = estat.municipi === v ? "" : v; mostrats = LIMIT; return aplica(); }
+    canvia(grup, v);
+  }
+
   // ---------- Exportació ----------
   function nomFitxer(ext) {
     const base = estat.municipi || estat.comarca || "castello";
@@ -662,6 +774,7 @@
     document.body.dataset.vista = v;
     document.querySelectorAll(".pestanyes button").forEach((b) => b.setAttribute("aria-selected", b.dataset.vista === v));
     if (v === "taula") pintaTaula();
+    if (v === "xifres") pintaXifres();
     if (v === "mapa") setTimeout(() => mapa.invalidateSize(), 0);
   }
   function obreCalaix() {
@@ -793,6 +906,25 @@
       estat.cols = new Set(a === "cols-totes" ? COLS.map((c) => c.k) : COLS.filter((c) => c.def).map((c) => c.k));
       desaCols(); pintaMenuColumnes(); pintaTaula();
     });
+
+    const xif = $("#xifres");
+    xif.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-filtra]");
+      if (b) return filtraDesDeXifres(b.dataset.filtra, b.dataset.valor);
+      if (e.target.closest('[data-accio="neteja"]')) neteja();
+    });
+    const tip = $("#tip");
+    const mostraTip = (el, x, y) => {
+      tip.textContent = el.dataset.tip; tip.hidden = false;
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, x - w / 2)) + "px";
+      tip.style.top = Math.max(8, y - h - 12) + "px";
+    };
+    xif.addEventListener("pointermove", (e) => { const el = e.target.closest("[data-tip]"); if (el) mostraTip(el, e.clientX, e.clientY); else tip.hidden = true; });
+    xif.addEventListener("pointerleave", () => (tip.hidden = true));
+    xif.addEventListener("focusin", (e) => { const el = e.target.closest("[data-tip]"); if (el) { const r = el.getBoundingClientRect(); mostraTip(el, r.left + r.width / 2, r.top); } });
+    xif.addEventListener("focusout", () => (tip.hidden = true));
+    xif.addEventListener("scroll", () => (tip.hidden = true));
 
     $("#exporta-csv").addEventListener("click", exportaCSV);
     $("#exporta-pdf").addEventListener("click", (e) => ambBoto(e.currentTarget, () =>
