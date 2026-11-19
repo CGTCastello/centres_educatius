@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mapa de centres educatius · CGT Castelló</title>
 <meta name="description" content="Busca centres educatius de la província de Castelló i consulta si tenen menjador, transport, banc de llibres, jornada contínua i què s'hi estudia.">
+<link rel="icon" type="image/png" href="assets/cgt-castello-color.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="estil.css?v=10">
+<link rel="stylesheet" href="estil.css?v=12">
 </head>
 <body data-vista="mapa">
 
@@ -32,6 +33,14 @@
         <button role="tab" data-vista="llistat" class="nomes-mobil" aria-selected="false">Llistat</button>
         <button role="tab" data-vista="taula" aria-selected="false">Taula</button>
       </nav>
+    </div>
+
+    <div class="eines__fila eines__fila--on">
+      <label class="selector"><span class="selector__lbl">Comarca</span>
+        <select id="f-comarca"><option value="">Totes</option></select></label>
+      <label class="selector"><span class="selector__lbl">Municipi</span>
+        <select id="f-municipi"><option value="">Tots</option></select></label>
+      <div class="regims" id="f-regim" role="group" aria-label="Règim"></div>
     </div>
 
     <div class="eines__fila eines__fila--filtres">
@@ -110,7 +119,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
-<script src="pdf.js?v=10" defer></script>
-<script src="app.js?v=10" defer></script>
+<script src="pdf.js?v=12" defer></script>
+<script src="app.js?v=12" defer></script>
 </body>
 </html>

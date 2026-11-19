@@ -90,23 +90,7 @@
       doc.text(g, M, y + 2); y += g.length * 3.8 + 2;
     }
 
-    // Resum
-    y += 3;
-    const caixes = [
-      [c.f.menjador_aut ? "Sí" : c.f.menjador ? "Altre" : "No", "Menjador", c.f.menjador_aut],
-      [c.f.transport ? "Sí" : "No", "Transport", c.f.transport],
-      [String(c.llocs), "Llocs actius", false],
-    ];
-    const bw = ample / 3;
-    caixes.forEach(([v, l, si], i) => {
-      const x = M + i * bw;
-      doc.setDrawColor(...LINIA); doc.setLineWidth(0.3); doc.rect(x, y, bw, 15);
-      doc.setFont("Anton", "normal"); doc.setFontSize(16); doc.setTextColor(...(si ? ROIG : NEGRE));
-      doc.text(v.toUpperCase(), x + bw / 2, y + 7.5, { align: "center" });
-      doc.setFont("OpenSans", "bold"); doc.setFontSize(6.5); doc.setTextColor(...GRIS);
-      doc.text(l.toUpperCase(), x + bw / 2, y + 12, { align: "center", charSpace: 0.3 });
-    });
-    y += 15 + 6;
+    y += 4;
 
     for (const s of seccions) {
       if (y > limit - 22) { doc.addPage(); y = M + 2; }

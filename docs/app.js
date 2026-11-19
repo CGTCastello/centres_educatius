@@ -73,7 +73,6 @@
     { grup: "flags", v: "transport", l: "Transport", ic: "transport" },
     { grup: "flags", v: "banc_llibres", l: "Banc de llibres", ic: "llibres" },
     { grup: "flags", v: "jornada_continua", l: "Jornada contínua", ic: "rellotge" },
-    { grup: "regim", v: "Públic", l: "Només públics" },
   ];
   const ETAPES = ["Infantil 0-3", "Infantil 3-6", "Primària", "ESO", "Batxillerat", "Formació professional",
     "Educació especial", "Persones adultes", "Música i dansa", "Arts i disseny", "Ensenyances esportives", "Idiomes"];
@@ -176,15 +175,14 @@
   const esRapid = (grup, v) => RAPIDS.some((r) => r.grup === grup && r.v === v);
   function nCalaix() {
     // filtres que només es poden canviar des del calaix
-    return [...estat.regim].filter((v) => !esRapid("regim", v)).length + (estat.comarca ? 1 : 0)
-      + [...estat.flags].filter((v) => !esRapid("flags", v)).length + estat.tipus.size + estat.inst.size;
+    return [...estat.flags].filter((v) => !esRapid("flags", v)).length + estat.tipus.size + estat.inst.size;
   }
   function actius() {
     const a = [];
     if (estat.q) a.push(["q", "", `«${$("#cerca").value.trim()}»`]);
     if (estat.municipi) a.push(["municipi", "", bonic(estat.municipi)]);
     if (estat.comarca) a.push(["comarca", "", bonic(estat.comarca)]);
-    for (const r of estat.regim) a.push(["regim", r, r === "Públic" ? "Només públics" : regimInfo(r).curt]);
+    for (const r of estat.regim) a.push(["regim", r, regimInfo(r).curt]);
     for (const f of estat.flags) a.push(["flags", f, flag(f).curt]);
     for (const e of estat.etapes) a.push(["etapes", e, e]);
     for (const t of estat.tipus) a.push(["tipus", t, t]);
@@ -217,7 +215,20 @@
     </label>`;
   const compta = (grup, prova) => CENTRES.filter((c) => passa(c, grup) && prova(c)).length;
 
+  function pintaOn() {
+    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
+    const munis = MUNIS.filter((m) => !estat.comarca || m.comarca === estat.comarca);
+    $("#f-comarca").innerHTML = `<option value="">Totes les comarques</option>${comarques.map((c) => `<option value="${esc(c)}"${c === estat.comarca ? " selected" : ""}>${esc(bonic(c))}</option>`).join("")}`;
+    $("#f-municipi").innerHTML = `<option value="">Tots els municipis</option>${munis.map((m) => `<option value="${esc(m.k)}"${m.k === estat.municipi ? " selected" : ""}>${esc(m.nom)}</option>`).join("")}`;
+    $("#f-comarca").closest(".selector").classList.toggle("actiu", !!estat.comarca);
+    $("#f-municipi").closest(".selector").classList.toggle("actiu", !!estat.municipi);
+    $("#f-regim").innerHTML = REGIMS.map((r) => {
+      const on = estat.regim.has(r.k);
+      return `<button class="xip" type="button" data-commuta="regim" data-valor="${esc(r.k)}" aria-pressed="${on}"><i class="m m--${r.cls}"></i>${r.curt} <span class="opcio__n">${compta("regim", (c) => c.regim === r.k)}</span></button>`;
+    }).join("");
+  }
   function pintaRapids() {
+    pintaOn();
     $("#rapids").innerHTML = RAPIDS.map((r) => {
       const on = estat[r.grup].has(r.v);
       return `<button class="xip" type="button" data-commuta="${r.grup}" data-valor="${esc(r.v)}" aria-pressed="${on}">${r.ic ? ic(r.ic, "ic--s") : ""}${esc(r.l)}</button>`;
@@ -241,20 +252,7 @@
   function pintaCalaix() {
     if ($("#calaix").hidden) return;
     const tipus = [...new Set(CENTRES.map((c) => c.tipus))].sort((a, b) => (a === "Altres") - (b === "Altres") || a.localeCompare(b, "ca"));
-    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
-    const munis = MUNIS.filter((m) => !estat.comarca || m.comarca === estat.comarca);
     $("#calaix-cos").innerHTML = `
-      <section class="bloc"><h3>On</h3>
-        <div class="camps2">
-          <label class="camp"><span class="camp__lbl">Comarca</span>
-            <select id="f-comarca"><option value="">Totes</option>${comarques.map((c) => `<option value="${esc(c)}"${c === estat.comarca ? " selected" : ""}>${esc(bonic(c))}</option>`).join("")}</select></label>
-          <label class="camp"><span class="camp__lbl">Municipi</span>
-            <select id="f-municipi"><option value="">Tots</option>${munis.map((m) => `<option value="${esc(m.k)}"${m.k === estat.municipi ? " selected" : ""}>${esc(m.nom)}</option>`).join("")}</select></label>
-        </div>
-      </section>
-      <section class="bloc"><h3>Règim</h3>
-        <div class="xips">${REGIMS.map((r) => `<label class="xip"><input type="checkbox" data-grup="regim" value="${esc(r.k)}"${estat.regim.has(r.k) ? " checked" : ""}><i class="m m--${r.cls}" style="width:12px;height:12px;outline:0"></i>${r.curt} <span class="opcio__n">${compta("regim", (c) => c.regim === r.k)}</span></label>`).join("")}</div>
-      </section>
       <section class="bloc"><h3>Serveis i programes</h3>
         <p class="ajuda">Es mostren només els centres que tenen <strong>tot</strong> el que marques.</p>
         <div class="opcions">${FLAGS.map((f) => opcio("flags", f.k, f.l, filtrats.filter((c) => c.f[f.k]).length, estat.flags.has(f.k), f.ajuda)).join("")}</div>
