@@ -354,3 +354,6 @@ body[data-vista="taula"] .vista-taula { display: flex; }
   .fitxa h1 { font-size: 28px; }
   .taula-eines__txt { width: 100%; }
 }
+
+/* Punts rodons al mapa, la llegenda i el llistat (petició expressa) */
+.m { border-radius: 50% !important; }

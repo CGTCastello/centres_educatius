@@ -392,41 +392,48 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapa);
     new ResizeObserver(() => mapa.invalidateSize()).observe(document.getElementById("mapa"));
-    capa = L.markerClusterGroup({
-      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 14, spiderfyOnMaxZoom: true,
-      iconCreateFunction: (cl) => {
-        const n = cl.getChildCount(), mida = n < 10 ? 30 : n < 50 ? 36 : 44;
-        return L.divIcon({ html: `<div class="grup-mapa${n >= 50 ? " grup-mapa--g" : ""}" style="width:${mida}px;height:${mida}px">${n}</div>`, className: "marcador", iconSize: [mida, mida] });
-      },
-    });
-    mapa.addLayer(capa);
+    capa = L.featureGroup().addTo(mapa);
   }
-  const icona = (c, mode) => L.divIcon({
-    className: "marcador",
-    html: `<i class="m ${mode === "sel" ? "m--sel" : `m--${regimInfo(c.regim).cls}${mode === "hover" ? " m--hover" : ""}`}"></i>`,
-    iconSize: mode === "sel" ? [24, 24] : mode === "hover" ? [22, 22] : [16, 16],
-  });
+  // Punts (sense agrupar): roig públic, negre concertat, blanc amb vora negra privat
+  const COLOR = { public: "#e42127", concertat: "#111111", privat: "#ffffff" };
+  function estil(c, mode) {
+    const cls = regimInfo(c.regim).cls;
+    if (mode === "sel") return { radius: 10, fillColor: "#e9e84c", color: "#111111", weight: 3, fillOpacity: 1, opacity: 1 };
+    const priv = cls === "privat";
+    return {
+      radius: mode === "hover" ? 9 : 6,
+      fillColor: COLOR[cls], fillOpacity: 1, opacity: 1,
+      color: mode === "hover" ? "#e9e84c" : priv ? "#111111" : "#ffffff",
+      weight: mode === "hover" ? 3 : priv ? 2 : 1.5,
+    };
+  }
+  function posaMode(codi, mode) {
+    const m = marcadors.get(codi);
+    if (!m) return null;
+    m.setStyle(estil(perCodi.get(codi), mode));
+    if (mode) m.bringToFront();
+    return m;
+  }
   function pintaMapa(ajusta) {
     capa.clearLayers();
     marcadors.clear();
     const ms = filtrats.filter((c) => c.lat).map((c) => {
-      const sel = estat.sel === c.codi;
-      const m = L.marker([c.lat, c.lng], { icon: icona(c, sel ? "sel" : ""), title: c._nom, zIndexOffset: sel ? 1000 : 0 });
-      m.bindTooltip(`${esc(c._nom)}<small>${esc(c.tipus)} · ${esc(c._muni)}</small>`, { direction: "top", offset: [0, -9] });
+      const m = L.circleMarker([c.lat, c.lng], { ...estil(c, estat.sel === c.codi ? "sel" : ""), bubblingMouseEvents: false });
+      m.bindTooltip(`${esc(c._nom)}<small>${esc(c.tipus)} · ${esc(c._muni)}</small>`, { direction: "top", offset: [0, -8] });
       m.on("click", () => selecciona(c.codi, { centra: false }));
       marcadors.set(c.codi, m);
+      capa.addLayer(m);
       return m;
     });
-    capa.addLayers(ms);
+    if (estat.sel) posaMode(estat.sel, "sel");
     mapa.invalidateSize();
-    if (ajusta && ms.length) mapa.fitBounds(L.featureGroup(ms).getBounds().pad(0.08), { maxZoom: 15 });
+    if (ajusta && ms.length) mapa.fitBounds(capa.getBounds().pad(0.08), { maxZoom: 15 });
   }
   function ressalta(codi, on) {
     const m = marcadors.get(codi);
     if (!m || codi === estat.sel) return;
-    const c = perCodi.get(codi);
-    m.setIcon(icona(c, on ? "hover" : "")).setZIndexOffset(on ? 900 : 0);
-    if (on && mapa.hasLayer(m)) m.openTooltip(); else m.closeTooltip();
+    posaMode(codi, on ? "hover" : "");
+    if (on) m.openTooltip(); else m.closeTooltip();
   }
 
   // ---------- Llistat ----------
@@ -569,12 +576,9 @@
     if (!c) return;
     const anterior = estat.sel;
     estat.sel = codi;
-    if (anterior && marcadors.get(anterior)) marcadors.get(anterior).setIcon(icona(perCodi.get(anterior), "")).setZIndexOffset(0);
-    const m = marcadors.get(codi);
-    if (m) {
-      m.setIcon(icona(c, "sel")).setZIndexOffset(1000);
-      if (centra) capa.zoomToShowLayer(m, () => mapa.setView(m.getLatLng(), Math.max(mapa.getZoom(), 14)));
-    }
+    if (anterior) posaMode(anterior, "");
+    const m = posaMode(codi, "sel");
+    if (m && centra) mapa.setView(m.getLatLng(), Math.max(mapa.getZoom(), 14));
     $("#panell").innerHTML = htmlFitxa(c);
     $("#panell").scrollTop = 0;
     try { history.replaceState(null, "", "#centre=" + codi); } catch (_) { /* iframe sandbox */ }
@@ -584,7 +588,7 @@
   function desselecciona(pinta = true) {
     const anterior = estat.sel;
     estat.sel = null;
-    if (anterior && marcadors.get(anterior)) marcadors.get(anterior).setIcon(icona(perCodi.get(anterior), "")).setZIndexOffset(0);
+    if (anterior) posaMode(anterior, "");
     try { history.replaceState(null, "", location.pathname + location.search); } catch (_) { /* */ }
     if (pinta) pintaLlistat();
   }
