@@ -64,11 +64,18 @@ GitHub Pages publica la rama `main` desde la raíz, así que la web queda en
 `https://cgtcastello.github.io/centres_educatius/docs/`. Para integrarla en WordPress:
 
 ```html
-<iframe src="https://cgtcastello.github.io/centres_educatius/docs/"
-        title="Mapa de centres educatius de Castelló"
-        allow="geolocation"
-        style="width:100%;height:85vh;min-height:640px;border:0" loading="lazy"></iframe>
+<style>
+.cgt-mapa iframe{display:block;width:100%;height:85vh;min-height:680px;border:0}
+@media (max-width:760px){.cgt-mapa iframe{height:100vh;height:100svh;min-height:640px}}
+</style>
+<div class="cgt-mapa">
+  <iframe src="https://cgtcastello.github.io/centres_educatius/docs/"
+          title="Mapa de centres educatius de Castelló"
+          allow="geolocation" loading="lazy"></iframe>
+</div>
 ```
+
+En el móvil el iframe ocupa toda la pantalla para que el mapa tenga sitio.
 
 `allow="geolocation"` hace falta para que funcione el botón «A prop meu» dentro del iframe.
 

@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="estil.css?v=14">
+<link rel="stylesheet" href="estil.css?v=15">
 </head>
 <body data-vista="mapa">
 
@@ -42,6 +42,7 @@
       </nav>
     </div>
 
+    <div class="filtres-mobil" id="filtres-mobil">
     <div class="eines__fila eines__fila--on">
       <label class="selector"><span class="selector__lbl">Comarca</span>
         <select id="f-comarca"><option value="">Totes</option></select></label>
@@ -64,9 +65,14 @@
         Més filtres <span class="xip__n" id="n-mes" hidden>0</span>
       </button>
     </div>
+    </div>
 
     <div class="resum-filtres">
       <p class="recompte"><b id="recompte">—</b> <span id="recompte-txt">centres</span></p>
+      <button class="xip nomes-mobil boto-filtres" id="mostra-filtres" type="button" aria-expanded="false" aria-controls="filtres-mobil">
+        <svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filtres <span class="xip__n" id="n-filtres-mobil" hidden>0</span>
+      </button>
       <div class="actius" id="actius"></div>
       <button class="enllac" id="neteja" type="button" hidden>Netejar-ho tot</button>
     </div>
@@ -126,7 +132,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
-<script src="pdf.js?v=14" defer></script>
-<script src="app.js?v=14" defer></script>
+<script src="pdf.js?v=15" defer></script>
+<script src="app.js?v=15" defer></script>
 </body>
 </html>

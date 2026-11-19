@@ -40,7 +40,7 @@ H1 de la pàgina (el posa el tema Total): **Mapa de centres educatius de la prov
 .cgt-mapa-centres details{border-bottom:1px solid #e4e2dd;padding:.7em 0}
 .cgt-mapa-centres summary{font-weight:700;cursor:pointer}
 .cgt-mapa-centres details p{margin:.5em 0 0}
-@media (max-width:760px){.cgt-mapa-centres iframe{height:90vh;min-height:600px}}
+@media (max-width:760px){.cgt-mapa-centres iframe{height:100vh;height:100svh;min-height:640px}.cgt-mapa-centres .cgt-marc{border-width:2px;margin-left:-4px;margin-right:-4px}}
 </style>
 
 <p class="cgt-intro">Busca qualsevol col·legi, institut, escoleta o centre de persones adultes de la província de Castelló i consulta en un minut si té <strong>menjador</strong>, <strong>transport escolar</strong>, <strong>banc de llibres</strong> o <strong>jornada contínua</strong>, què s'hi estudia i en quines llengües. Pots filtrar per comarca, municipi i règim, buscar els centres més pròxims a tu i descarregar la fitxa de cada centre o el llistat en PDF i CSV.</p>
@@ -135,7 +135,7 @@ Nota: el mapa (dentro del iframe) está en valencià; el texto de alrededor va e
 .cgt-mapa-centres details{border-bottom:1px solid #e4e2dd;padding:.7em 0}
 .cgt-mapa-centres summary{font-weight:700;cursor:pointer}
 .cgt-mapa-centres details p{margin:.5em 0 0}
-@media (max-width:760px){.cgt-mapa-centres iframe{height:90vh;min-height:600px}}
+@media (max-width:760px){.cgt-mapa-centres iframe{height:100vh;height:100svh;min-height:640px}.cgt-mapa-centres .cgt-marc{border-width:2px;margin-left:-4px;margin-right:-4px}}
 </style>
 
 <p class="cgt-intro">Busca cualquier colegio, instituto, escuela infantil o centro de personas adultas de la provincia de Castellón y consulta en un minuto si tiene <strong>comedor</strong>, <strong>transporte escolar</strong>, <strong>banco de libros</strong> o <strong>jornada continua</strong>, qué se estudia y en qué lenguas. Puedes filtrar por comarca, municipio y régimen, buscar los centros más cercanos a ti y descargar la ficha de cada centro o el listado en PDF y CSV.</p>

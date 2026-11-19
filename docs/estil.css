@@ -389,3 +389,24 @@ body[data-vista="taula"] .vista-taula { display: flex; }
   .regims { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); }
   .regims .xip { justify-content: center; padding: 5px 6px; }
 }
+
+/* Mòbil compacte: filtres plegats darrere del botó «Filtres» */
+.filtres-mobil { display: contents; }
+.filtres-mobil .eines__fila--on { margin-top: 10px; }
+@media (max-width: 760px) {
+  .eines { padding: 8px 10px 0; }
+  .eines__fila + .eines__fila { margin-top: 6px; }
+  .cerca input, .boto--aprop { height: 44px; }
+  .boto--aprop { width: 44px; }
+  .cerca { flex-basis: calc(100% - 54px); }
+  .pestanyes button { min-height: 38px; font-size: 16px; }
+  .filtres-mobil { display: none; }
+  body.filtres-mobil-oberts .filtres-mobil { display: block; padding-bottom: 4px; }
+  .resum-filtres { padding: 6px 0 8px; gap: 6px 10px; }
+  .boto-filtres.nomes-mobil { display: inline-flex; margin-left: auto; min-height: 34px; }
+  .filtres-mobil .eines__fila--on { margin-top: 6px; }
+  body.filtres-mobil-oberts .boto-filtres { background: var(--negre); color: var(--blanc); }
+  .actius { flex-basis: 100%; }
+  .actius:empty { display: none; }
+  .llegenda { display: none; }
+}

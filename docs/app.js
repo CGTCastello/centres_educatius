@@ -248,6 +248,7 @@
     const a = actius();
     $("#actius").innerHTML = a.map(([g, v, t]) => `<button class="actiu-xip" type="button" data-treu="${g}" data-valor="${esc(v)}" aria-label="Treure el filtre ${esc(t)}">${esc(t)}${ic("creu")}</button>`).join("");
     $("#neteja").hidden = a.length < 2;
+    $("#n-filtres-mobil").textContent = a.length; $("#n-filtres-mobil").hidden = !a.length;
   }
   function pintaCalaix() {
     if ($("#calaix").hidden) return;
@@ -715,6 +716,10 @@
     });
 
     $("#aprop").addEventListener("click", aprop);
+    $("#mostra-filtres").addEventListener("click", (e) => {
+      const obert = document.body.classList.toggle("filtres-mobil-oberts");
+      e.currentTarget.setAttribute("aria-expanded", obert);
+    });
 
     // Xips ràpids, filtres actius i opcions
     document.addEventListener("click", (e) => {
