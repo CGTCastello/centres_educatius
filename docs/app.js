@@ -2,6 +2,50 @@
 (() => {
   "use strict";
 
+  // ---------- Icones (traç, sense farciment) ----------
+  const ICONES = {
+    menjador: "M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M17 21V3c-2.2 1.2-3.5 4-3.5 7.5V13H17",
+    transport: "M5 4h14v13H5zM5 11h14M8 17v3M16 17v3M8 14h.01M16 14h.01",
+    llibres: "M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z",
+    rellotge: "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 7v5l3 2",
+    internat: "M3 19V7M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6M6.5 10.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0",
+    cafeteria: "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3",
+    estiu: "M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2",
+    nadó: "M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0M5 21a7 7 0 0 1 14 0",
+    pin: "M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 7.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z",
+    ruta: "M3 11l18-8-8 18-2-8z",
+    telefon: "M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 4 5a1 1 0 0 1 1-1z",
+    web: "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9M12 3c-2.5 2.5-3.5 5.5-3.5 9s1 6.5 3.5 9",
+    correu: "M3 5h18v14H3zM3 6l9 7 9-7",
+    descarrega: "M12 4v11M7 10l5 5 5-5M5 20h14",
+    creu: "M6 6l12 12M18 6L6 18",
+    enrere: "M15 6l-6 6 6 6",
+    cap: "M4 4l16 16",
+  };
+  const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONES[n] || ""}"/></svg>`;
+
+  // ---------- Text ----------
+  const SIGLES = new Set(["CEIP", "IES", "CRA", "EI", "CEE", "FPA", "CIPFP", "EOI", "SES", "CPFPA", "CEIPSO", "CPEE", "CC", "CP",
+    "I", "II", "III", "IV", "V", "VI", "XIII", "XXIII", "FP", "ESO", "CEED", "EASD", "EPA", "CEFIRE", "UJI", "SAFA", "CIL", "PMAR", "ADEAC", "CPM", "CEM", "CFGS", "CFGM", "ESVIM", "CENETED"]);
+  const PETITES = new Set(["de", "del", "dels", "la", "les", "el", "els", "i", "y", "a", "al", "als", "en", "per", "amb", "da", "do", "los", "las", "of", "the", "and"]);
+  function bonic(s) {
+    if (!s) return s || "";
+    return s.toLowerCase().split(/(\s+)/).map((w, i) => {
+      if (/^\s+$/.test(w)) return w;
+      const up = w.toUpperCase();
+      if (SIGLES.has(up.replace(/[.,]/g, ""))) return up;
+      if (i > 0 && PETITES.has(w)) return w;
+      // apòstrofs: d'uixó -> d'Uixó, l'ereta -> l'Ereta
+      const m = w.match(/^([dl]’|[dl]')(.+)$/);
+      if (m) return (i === 0 ? m[1].toUpperCase() : m[1]) + (SIGLES.has(m[2].toUpperCase()) ? m[2].toUpperCase() : cap(m[2]));
+      return w.split("-").map((p, j) => (j > 0 && p === "real" ? p : cap(p))).join("-");
+    }).join("");
+  }
+  function cap(p) { return p ? p.charAt(0).toUpperCase() + p.slice(1) : p; }
+  const norm = (s) => (s || "").toString().normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const km = (d) => (d < 1 ? `${Math.round(d * 1000 / 50) * 50} m` : `${d.toFixed(d < 10 ? 1 : 0).replace(".", ",")} km`);
+
   // ---------- Definicions ----------
   const REGIMS = [
     { k: "Públic", curt: "Públic", cls: "public" },
@@ -11,30 +55,39 @@
   const regimInfo = (r) => REGIMS.find((x) => x.k === r) || REGIMS[2];
 
   const FLAGS = [
-    { k: "menjador_aut", l: "Menjador escolar autoritzat", curt: "Menjador autoritzat", ajuda: "El que compta el filtre «Menjador» de Conselleria" },
-    { k: "menjador", l: "Menjador (qualsevol)", curt: "Menjador (qualsevol)", ajuda: "Inclou també escoletes i privats" },
-    { k: "transport", l: "Transport escolar", curt: "Transport" },
-    { k: "banc_llibres", l: "Banc de llibres", curt: "Banc de llibres" },
-    { k: "jornada_continua", l: "Jornada contínua (9 a 14 h)", curt: "Jornada contínua" },
-    { k: "aula_2anys", l: "Aula de dos anys", curt: "Aula 2 anys" },
+    { k: "menjador_aut", l: "Menjador escolar autoritzat", curt: "Menjador", ic: "menjador", ajuda: "El que compta el filtre «Menjador» de Conselleria" },
+    { k: "menjador", l: "Menjador (qualsevol)", curt: "Menjador (qualsevol)", ic: "menjador", ajuda: "Inclou també escoletes i centres privats" },
+    { k: "transport", l: "Transport escolar", curt: "Transport", ic: "transport" },
+    { k: "banc_llibres", l: "Banc de llibres", curt: "Banc de llibres", ic: "llibres" },
+    { k: "jornada_continua", l: "Jornada contínua (9 a 14 h)", curt: "Jornada contínua", ic: "rellotge" },
+    { k: "aula_2anys", l: "Aula de dos anys", curt: "Aula 2 anys", ic: "nadó" },
     { k: "aula_cil", l: "Aula de comunicació i llenguatge (CIL)", curt: "Aula CIL" },
-    { k: "internat", l: "Internat", curt: "Internat" },
-    { k: "cafeteria", l: "Cafeteria / bar", curt: "Cafeteria" },
-    { k: "cursos_estiu", l: "Cursos d'estiu", curt: "Cursos d'estiu" },
+    { k: "internat", l: "Internat", curt: "Internat", ic: "internat" },
+    { k: "cafeteria", l: "Cafeteria / bar", curt: "Cafeteria", ic: "cafeteria" },
+    { k: "cursos_estiu", l: "Cursos d'estiu", curt: "Cursos d'estiu", ic: "estiu" },
     { k: "fse", l: "Fons Socials Europeus", curt: "FSE" },
+  ];
+  const flag = (k) => FLAGS.find((f) => f.k === k);
+  const RAPIDS = [
+    { grup: "flags", v: "menjador_aut", l: "Menjador", ic: "menjador" },
+    { grup: "flags", v: "transport", l: "Transport", ic: "transport" },
+    { grup: "flags", v: "banc_llibres", l: "Banc de llibres", ic: "llibres" },
+    { grup: "flags", v: "jornada_continua", l: "Jornada contínua", ic: "rellotge" },
+    { grup: "regim", v: "Públic", l: "Només públics" },
   ];
   const ETAPES = ["Infantil 0-3", "Infantil 3-6", "Primària", "ESO", "Batxillerat", "Formació professional",
     "Educació especial", "Persones adultes", "Música i dansa", "Arts i disseny", "Ensenyances esportives", "Idiomes"];
+  const ETAPA_AJUDA = { "Infantil 0-3": "Escoleta, de 0 a 3 anys", "Infantil 3-6": "De 3 a 6 anys" };
 
   const siNo = (b) => (b ? "Sí" : "No");
   const llista = (a) => (a || []).join(", ");
   const COLS = [
     { k: "codi", l: "Codi", v: (c) => c.codi },
-    { k: "nom", l: "Centre", v: (c) => c.nom, def: true, cls: "col-nom" },
+    { k: "nom", l: "Centre", v: (c) => c._nom, def: true, cls: "col-nom" },
     { k: "tipus", l: "Tipus", v: (c) => c.tipus, def: true },
     { k: "regim", l: "Règim", v: (c) => c.regim, def: true },
-    { k: "municipi", l: "Municipi", v: (c) => c.municipi, def: true },
-    { k: "comarca", l: "Comarca", v: (c) => c.comarca },
+    { k: "municipi", l: "Municipi", v: (c) => c._muni, def: true },
+    { k: "comarca", l: "Comarca", v: (c) => c._comarca },
     { k: "adreca", l: "Adreça", v: (c) => `${c.adreca} · ${c.cp}` },
     { k: "telefon", l: "Telèfon", v: (c) => c.telefon || "", def: true },
     { k: "correu", l: "Correu", v: (c) => c.correu || "" },
@@ -53,20 +106,20 @@
     { k: "lat", l: "Latitud", v: (c) => c.lat, num: true },
     { k: "lng", l: "Longitud", v: (c) => c.lng, num: true },
   ];
+  const DIST_COL = { k: "dist", l: "Distància (km)", v: (c) => (c._dist != null ? Math.round(c._dist * 10) / 10 : ""), num: true };
 
   const fitxaOficial = (c) => `https://xacen.gva.es/xacen-frontend/centro?codigoCentro=${c.codi}&lang=va`;
-  const norm = (s) => (s || "").toString().normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-  // Model de la fitxa: el fa servir la vista web i el PDF (pdf.js)
+  // Model de la fitxa per al PDF (pdf.js)
   function seccions(c) {
     const kv = (files) => ({ tipus: "kv", files: files.filter((f) => f[1] !== null && f[1] !== undefined && f[1] !== "") });
     const s = [];
     s.push({ titol: "Dades del centre", ...kv([
       ["Codi", c.codi], ["Denominació", c.generica], ["Tipus", c.tipus], ["Règim", c.regim],
-      ["Titular", c.titular], ["CIF", c.cif], ["Comarca", c.comarca],
+      ["Titular", c.titular], ["CIF", c.cif], ["Comarca", c._comarca],
     ]) });
     s.push({ titol: "Contacte i ubicació", ...kv([
-      ["Adreça", `${c.adreca}, ${c.cp} ${c.municipi}`], ["Telèfon", c.telefon], ["Fax", c.fax],
+      ["Adreça", `${c.adreca}, ${c.cp} ${c._muni}`], ["Telèfon", c.telefon], ["Fax", c.fax],
       ["Correu", c.correu], ["Web", c.web],
     ]) });
     const altres = c.serveis.filter((x) => !["Menjador escolar autoritzat", "Menjador", "Transport", "Cafeteria/bar", "Cursos d'estiu"].includes(x) && !/^Internat/.test(x));
@@ -74,14 +127,15 @@
       ["Menjador escolar autoritzat", c.f.menjador_aut],
       ...(c.f.menjador && !c.f.menjador_aut ? [["Menjador (sense autorització de Conselleria)", true]] : []),
       ["Transport escolar", c.f.transport],
+      ["Banc de llibres", c.f.banc_llibres],
       ["Internat", c.f.internat],
       ["Cafeteria / bar", c.f.cafeteria],
       ["Cursos d'estiu", c.f.cursos_estiu],
       ...altres.map((x) => [x, true]),
     ] });
-    s.push({ titol: "Jornada", tipus: "llista", items: c.jornada });
+    s.push({ titol: "Horari", tipus: "llista", items: c.jornada });
     s.push({ titol: "Programes i característiques", tipus: "llista", items: c.programes });
-    s.push({ titol: "Ensenyaments autoritzats", tipus: "taula",
+    s.push({ titol: "Què s'hi estudia", tipus: "taula",
       cap: ["Nivell", "Unitats", "Llocs"], num: [1, 2],
       files: c.nivells, peu: c.nivells.length > 1 ? ["Total", c.unitats, c.llocs] : null });
     s.push({ titol: "Programa lingüístic", tipus: "taula",
@@ -96,7 +150,7 @@
   const estat = {
     q: "", regim: new Set(), comarca: "", municipi: "",
     flags: new Set(), etapes: new Set(), tipus: new Set(), inst: new Set(),
-    sel: null, ordre: { k: null, dir: 1 }, llistatOrdre: "municipi",
+    sel: null, origen: null, ordre: { k: null, dir: 1 }, llistatOrdre: "municipi",
     cols: new Set(COLS.filter((c) => c.def).map((c) => c.k)),
   };
   try {
@@ -104,9 +158,8 @@
     if (Array.isArray(desades) && desades.length) estat.cols = new Set(desades.filter((k) => COLS.some((c) => c.k === k)));
   } catch (_) { /* sense emmagatzematge */ }
 
-  let CENTRES = [], META = {}, filtrats = [], perCodi = new Map();
+  let CENTRES = [], META = {}, filtrats = [], perCodi = new Map(), MUNIS = [];
   const $ = (s, el = document) => el.querySelector(s);
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 
   // ---------- Filtres ----------
   function passa(c, ignora) {
@@ -120,23 +173,40 @@
     for (const i of estat.inst) if (!c.installacions.includes(i)) return false;
     return true;
   }
-
-  function nFiltres() {
-    return (estat.q ? 1 : 0) + estat.regim.size + (estat.comarca ? 1 : 0) + (estat.municipi ? 1 : 0)
-      + estat.flags.size + estat.etapes.size + estat.tipus.size + estat.inst.size;
+  const esRapid = (grup, v) => RAPIDS.some((r) => r.grup === grup && r.v === v);
+  function nCalaix() {
+    // filtres que només es poden canviar des del calaix
+    return [...estat.regim].filter((v) => !esRapid("regim", v)).length + (estat.comarca ? 1 : 0)
+      + [...estat.flags].filter((v) => !esRapid("flags", v)).length + estat.tipus.size + estat.inst.size;
+  }
+  function actius() {
+    const a = [];
+    if (estat.q) a.push(["q", "", `«${$("#cerca").value.trim()}»`]);
+    if (estat.municipi) a.push(["municipi", "", bonic(estat.municipi)]);
+    if (estat.comarca) a.push(["comarca", "", bonic(estat.comarca)]);
+    for (const r of estat.regim) a.push(["regim", r, r === "Públic" ? "Només públics" : regimInfo(r).curt]);
+    for (const f of estat.flags) a.push(["flags", f, flag(f).curt]);
+    for (const e of estat.etapes) a.push(["etapes", e, e]);
+    for (const t of estat.tipus) a.push(["tipus", t, t]);
+    for (const i of estat.inst) a.push(["inst", i, i]);
+    return a;
+  }
+  function descripcioFiltres() {
+    const a = actius().map((x) => x[2]);
+    return a.length ? a.join(" · ") : "Tots els centres";
   }
 
-  function descripcioFiltres() {
-    const p = [];
-    if (estat.q) p.push(`cerca «${$("#cerca").value.trim()}»`);
-    if (estat.regim.size) p.push([...estat.regim].map((r) => regimInfo(r).curt).join(" o "));
-    if (estat.comarca) p.push(estat.comarca);
-    if (estat.municipi) p.push(estat.municipi);
-    if (estat.tipus.size) p.push([...estat.tipus].join(" o "));
-    if (estat.etapes.size) p.push([...estat.etapes].join(" o "));
-    for (const f of estat.flags) p.push(FLAGS.find((x) => x.k === f).l);
-    for (const i of estat.inst) p.push(i);
-    return p.length ? p.join(" · ") : "Tots els centres";
+  function canvia(grup, valor, on) {
+    if (["q", "municipi", "comarca"].includes(grup)) {
+      estat[grup] = "";
+      if (grup === "q") $("#cerca").value = "";
+    } else {
+      const set = estat[grup];
+      const posa = on === undefined ? !set.has(valor) : on;
+      posa ? set.add(valor) : set.delete(valor);
+    }
+    mostrats = LIMIT;
+    aplica();
   }
 
   const opcio = (grup, valor, text, n, marcat, ajuda) => `
@@ -145,67 +215,204 @@
       <span>${esc(text)}${ajuda ? `<small>${esc(ajuda)}</small>` : ""}</span>
       <span class="opcio__n">${n}</span>
     </label>`;
+  const compta = (grup, prova) => CENTRES.filter((c) => passa(c, grup) && prova(c)).length;
 
-  function pintaFiltres() {
-    const compta = (grup, prova) => CENTRES.filter((c) => passa(c, grup) && prova(c)).length;
-    $("#f-regim").innerHTML = REGIMS.map((r) => `
-      <label class="xip"><input type="checkbox" data-grup="regim" value="${esc(r.k)}"${estat.regim.has(r.k) ? " checked" : ""}>
-      <i class="m m--${r.cls}"></i>${r.curt} <span class="opcio__n">${compta("regim", (c) => c.regim === r.k)}</span></label>`).join("");
-    $("#f-flags").innerHTML = FLAGS.map((f) => opcio("flags", f.k, f.l, filtrats.filter((c) => c.f[f.k]).length, estat.flags.has(f.k), f.ajuda)).join("");
-    $("#f-etapes").innerHTML = ETAPES.map((e) => opcio("etapes", e, e, compta("etapes", (c) => c.etapes.includes(e)), estat.etapes.has(e))).join("");
+  function pintaRapids() {
+    $("#rapids").innerHTML = RAPIDS.map((r) => {
+      const on = estat[r.grup].has(r.v);
+      return `<button class="xip" type="button" data-commuta="${r.grup}" data-valor="${esc(r.v)}" aria-pressed="${on}">${r.ic ? ic(r.ic, "ic--s") : ""}${esc(r.l)}</button>`;
+    }).join("");
+    const n = estat.etapes.size;
+    $("#pop-etapa-txt").textContent = n === 1 ? [...estat.etapes][0] : n > 1 ? `Etapa (${n})` : "Etapa";
+    $("#pop-etapa > button").classList.toggle("actiu", n > 0);
+    if (!$("#pop-etapa-menu").hidden) pintaEtapes();
+    const nc = nCalaix();
+    $("#n-mes").textContent = nc; $("#n-mes").hidden = !nc;
+    $("#obre-calaix").classList.toggle("actiu", nc > 0);
+  }
+  function pintaEtapes() {
+    $("#pop-etapa-menu").innerHTML = `<div class="opcions">${ETAPES.map((e) => opcio("etapes", e, e, compta("etapes", (c) => c.etapes.includes(e)), estat.etapes.has(e), ETAPA_AJUDA[e])).join("")}</div>`;
+  }
+  function pintaActius() {
+    const a = actius();
+    $("#actius").innerHTML = a.map(([g, v, t]) => `<button class="actiu-xip" type="button" data-treu="${g}" data-valor="${esc(v)}" aria-label="Treure el filtre ${esc(t)}">${esc(t)}${ic("creu")}</button>`).join("");
+    $("#neteja").hidden = a.length < 2;
+  }
+  function pintaCalaix() {
+    if ($("#calaix").hidden) return;
     const tipus = [...new Set(CENTRES.map((c) => c.tipus))].sort((a, b) => (a === "Altres") - (b === "Altres") || a.localeCompare(b, "ca"));
-    $("#f-tipus").innerHTML = tipus.map((t) => opcio("tipus", t, t, compta("tipus", (c) => c.tipus === t), estat.tipus.has(t))).join("");
-    $("#f-inst").innerHTML = META.inst.map((i) => opcio("inst", i, i, filtrats.filter((c) => c.installacions.includes(i)).length, estat.inst.has(i))).join("");
-
-    // Municipis segons comarca
-    const munis = [...new Set(CENTRES.filter((c) => !estat.comarca || c.comarca === estat.comarca).map((c) => c.municipi))].sort((a, b) => a.localeCompare(b, "ca"));
-    if (estat.municipi && !munis.includes(estat.municipi)) estat.municipi = "";
-    $("#f-municipi").innerHTML = `<option value="">Tots</option>` + munis.map((m) => `<option${m === estat.municipi ? " selected" : ""}>${esc(m)}</option>`).join("");
+    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
+    const munis = MUNIS.filter((m) => !estat.comarca || m.comarca === estat.comarca);
+    $("#calaix-cos").innerHTML = `
+      <section class="bloc"><h3>On</h3>
+        <div class="camps2">
+          <label class="camp"><span class="camp__lbl">Comarca</span>
+            <select id="f-comarca"><option value="">Totes</option>${comarques.map((c) => `<option value="${esc(c)}"${c === estat.comarca ? " selected" : ""}>${esc(bonic(c))}</option>`).join("")}</select></label>
+          <label class="camp"><span class="camp__lbl">Municipi</span>
+            <select id="f-municipi"><option value="">Tots</option>${munis.map((m) => `<option value="${esc(m.k)}"${m.k === estat.municipi ? " selected" : ""}>${esc(m.nom)}</option>`).join("")}</select></label>
+        </div>
+      </section>
+      <section class="bloc"><h3>Règim</h3>
+        <div class="xips">${REGIMS.map((r) => `<label class="xip"><input type="checkbox" data-grup="regim" value="${esc(r.k)}"${estat.regim.has(r.k) ? " checked" : ""}><i class="m m--${r.cls}" style="width:12px;height:12px;outline:0"></i>${r.curt} <span class="opcio__n">${compta("regim", (c) => c.regim === r.k)}</span></label>`).join("")}</div>
+      </section>
+      <section class="bloc"><h3>Serveis i programes</h3>
+        <p class="ajuda">Es mostren només els centres que tenen <strong>tot</strong> el que marques.</p>
+        <div class="opcions">${FLAGS.map((f) => opcio("flags", f.k, f.l, filtrats.filter((c) => c.f[f.k]).length, estat.flags.has(f.k), f.ajuda)).join("")}</div>
+      </section>
+      <section class="bloc"><h3>Etapa</h3>
+        <div class="opcions">${ETAPES.map((e) => opcio("etapes", e, e, compta("etapes", (c) => c.etapes.includes(e)), estat.etapes.has(e), ETAPA_AJUDA[e])).join("")}</div>
+      </section>
+      <section class="bloc"><h3>Tipus de centre</h3>
+        <div class="opcions">${tipus.map((t) => opcio("tipus", t, t, compta("tipus", (c) => c.tipus === t), estat.tipus.has(t))).join("")}</div>
+      </section>
+      <section class="bloc"><h3>Instal·lacions</h3>
+        <div class="opcions">${META.inst.map((i) => opcio("inst", i, i, filtrats.filter((c) => c.installacions.includes(i)).length, estat.inst.has(i))).join("")}</div>
+      </section>
+      <p class="font" style="margin-top:20px">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}.</p>`;
   }
 
   function aplica({ ajusta = true } = {}) {
     filtrats = CENTRES.filter((c) => passa(c));
     $("#recompte").textContent = filtrats.length;
-    $("#n-aplica").textContent = filtrats.length;
-    const n = nFiltres();
-    $("#n-filtres").textContent = n;
-    $("#n-filtres").hidden = !n;
-    pintaFiltres();
+    $("#recompte-txt").textContent = filtrats.length === 1 ? "centre" : "centres";
+    $("#n-calaix").textContent = filtrats.length;
+    $("#n-taula").textContent = filtrats.length;
+    pintaRapids();
+    pintaActius();
+    const scroll = $("#calaix-cos").scrollTop;
+    pintaCalaix();
+    $("#calaix-cos").scrollTop = scroll;
     pintaMapa(ajusta);
+    if (estat.sel && !filtrats.some((c) => c.codi === estat.sel)) desselecciona(false);
     if (!estat.sel) pintaLlistat();
     pintaTaula();
+  }
+
+  // ---------- Cerca amb suggeriments ----------
+  let sugg = [], suggIdx = -1;
+  function marca(text, q) {
+    const n = norm(text), i = n.indexOf(q);
+    if (!q || i < 0) return esc(text);
+    return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+  }
+  function pintaSugg(qraw) {
+    const q = norm(qraw.trim());
+    const ul = $("#suggeriments");
+    if (q.length < 2) { ul.hidden = true; $("#cerca").setAttribute("aria-expanded", "false"); sugg = []; return; }
+    const munis = MUNIS.filter((m) => m._n.split(/[\s'-]+/).some((w) => w.startsWith(q)) || m._n.startsWith(q)).slice(0, 5);
+    const centres = CENTRES.filter((c) => norm(c._nom).includes(q) || c.codi.startsWith(q)).slice(0, 6);
+    sugg = [...munis.map((m) => ({ t: "m", m })), ...centres.map((c) => ({ t: "c", c }))];
+    suggIdx = -1;
+    if (!sugg.length) {
+      ul.innerHTML = `<li class="suggeriments__grup">Cap coincidència</li>`;
+    } else {
+      let i = 0;
+      ul.innerHTML =
+        (munis.length ? `<li class="suggeriments__grup" role="presentation">Municipis</li>` + munis.map((m) => `<li class="suggeriment" role="option" id="sg-${i}" data-i="${i++}" aria-selected="false">${ic("pin", "ic--s")}<b>${marca(m.nom, q)}</b><span>${m.n} ${m.n === 1 ? "centre" : "centres"}</span></li>`).join("") : "") +
+        (centres.length ? `<li class="suggeriments__grup" role="presentation">Centres</li>` + centres.map((c) => `<li class="suggeriment" role="option" id="sg-${i}" data-i="${i++}" aria-selected="false"><i class="m m--${regimInfo(c.regim).cls}" style="width:10px;height:10px;outline:0;border-width:${c.regim === "Privat no concertat" ? 2 : 0}px"></i><b>${marca(c._nom, q)}</b><span>${esc(c._muni)}</span></li>`).join("") : "");
+    }
+    ul.hidden = false;
+    $("#cerca").setAttribute("aria-expanded", "true");
+  }
+  function triaSugg(i) {
+    const s = sugg[i];
+    if (!s) return;
+    tancaSugg();
+    $("#cerca").value = "";
+    estat.q = "";
+    if (s.t === "m") {
+      estat.municipi = s.m.k;
+      estat.comarca = "";
+      mostrats = LIMIT;
+      aplica();
+    } else {
+      if (!passa(s.c)) { neteja(false); }
+      else aplica({ ajusta: false });
+      selecciona(s.c.codi);
+    }
+  }
+  function tancaSugg() { $("#suggeriments").hidden = true; $("#cerca").setAttribute("aria-expanded", "false"); suggIdx = -1; }
+  function mouSugg(d) {
+    if (!sugg.length) return;
+    suggIdx = (suggIdx + d + sugg.length) % sugg.length;
+    document.querySelectorAll(".suggeriment").forEach((li) => li.setAttribute("aria-selected", li.dataset.i == suggIdx));
+    const el = $(`#sg-${suggIdx}`);
+    if (el) { el.scrollIntoView({ block: "nearest" }); $("#cerca").setAttribute("aria-activedescendant", el.id); }
+  }
+
+  // ---------- A prop meu ----------
+  function distancia(a, b) {
+    const R = 6371, r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  let marcaOrigen = null;
+  function aprop() {
+    const boto = $("#aprop");
+    if (estat.origen) { // desactiva
+      estat.origen = null;
+      CENTRES.forEach((c) => (c._dist = null));
+      if (marcaOrigen) { mapa.removeLayer(marcaOrigen); marcaOrigen = null; }
+      boto.classList.remove("actiu");
+      if (estat.llistatOrdre === "distancia") estat.llistatOrdre = "municipi";
+      aplica();
+      return;
+    }
+    if (!navigator.geolocation) return avisa("El teu navegador no permet saber on estàs.");
+    boto.disabled = true;
+    navigator.geolocation.getCurrentPosition((p) => {
+      boto.disabled = false;
+      estat.origen = { lat: p.coords.latitude, lng: p.coords.longitude };
+      CENTRES.forEach((c) => (c._dist = c.lat ? distancia(estat.origen, c) : null));
+      estat.llistatOrdre = "distancia";
+      boto.classList.add("actiu");
+      if (marcaOrigen) mapa.removeLayer(marcaOrigen);
+      marcaOrigen = L.marker([estat.origen.lat, estat.origen.lng], {
+        icon: L.divIcon({ className: "marcador", html: '<i class="origen"></i>', iconSize: [18, 18] }), zIndexOffset: 2000, keyboard: false,
+      }).bindTooltip("Ets ací", { direction: "top", offset: [0, -10] }).addTo(mapa);
+      aplica({ ajusta: false });
+      const prop = [...filtrats].sort((a, b) => a._dist - b._dist).slice(0, 8);
+      const punts = [[estat.origen.lat, estat.origen.lng], ...prop.map((c) => [c.lat, c.lng])];
+      mapa.fitBounds(L.latLngBounds(punts).pad(0.15), { maxZoom: 15 });
+      if (estretor()) posaVista("llistat");
+      avisa("Centres ordenats pels més pròxims a tu");
+    }, () => {
+      boto.disabled = false;
+      avisa("No s'ha pogut saber on estàs. Revisa el permís d'ubicació del navegador.");
+    }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 });
   }
 
   // ---------- Mapa ----------
   let mapa, capa, marcadors = new Map();
   function iniciaMapa() {
-    mapa = L.map("mapa", { zoomControl: true, scrollWheelZoom: true, preferCanvas: false }).setView([40.15, -0.15], 9);
+    mapa = L.map("mapa", { zoomControl: true, scrollWheelZoom: true }).setView([40.15, -0.15], 9);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19, className: "teseles",
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapa);
-    // Recalcula la mida quan canvia el contenidor (iframe, pestanyes, mòbil)
     new ResizeObserver(() => mapa.invalidateSize()).observe(document.getElementById("mapa"));
     capa = L.markerClusterGroup({
-      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 15, spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 14, spiderfyOnMaxZoom: true,
       iconCreateFunction: (cl) => {
-        const n = cl.getChildCount(), mida = n < 10 ? 28 : n < 50 ? 34 : 42;
+        const n = cl.getChildCount(), mida = n < 10 ? 30 : n < 50 ? 36 : 44;
         return L.divIcon({ html: `<div class="grup-mapa${n >= 50 ? " grup-mapa--g" : ""}" style="width:${mida}px;height:${mida}px">${n}</div>`, className: "marcador", iconSize: [mida, mida] });
       },
     });
     mapa.addLayer(capa);
   }
-  const icona = (c, sel) => L.divIcon({
+  const icona = (c, mode) => L.divIcon({
     className: "marcador",
-    html: `<i class="m ${sel ? "m--sel" : "m--" + regimInfo(c.regim).cls}"></i>`,
-    iconSize: sel ? [22, 22] : [14, 14],
+    html: `<i class="m ${mode === "sel" ? "m--sel" : `m--${regimInfo(c.regim).cls}${mode === "hover" ? " m--hover" : ""}`}"></i>`,
+    iconSize: mode === "sel" ? [24, 24] : mode === "hover" ? [22, 22] : [16, 16],
   });
   function pintaMapa(ajusta) {
     capa.clearLayers();
     marcadors.clear();
     const ms = filtrats.filter((c) => c.lat).map((c) => {
-      const m = L.marker([c.lat, c.lng], { icon: icona(c, estat.sel === c.codi), title: c.nom, zIndexOffset: estat.sel === c.codi ? 1000 : 0 });
-      m.bindTooltip(`${c.nom} · ${c.municipi}`, { direction: "top", offset: [0, -8] });
+      const sel = estat.sel === c.codi;
+      const m = L.marker([c.lat, c.lng], { icon: icona(c, sel ? "sel" : ""), title: c._nom, zIndexOffset: sel ? 1000 : 0 });
+      m.bindTooltip(`${esc(c._nom)}<small>${esc(c.tipus)} · ${esc(c._muni)}</small>`, { direction: "top", offset: [0, -9] });
       m.on("click", () => selecciona(c.codi, { centra: false }));
       marcadors.set(c.codi, m);
       return m;
@@ -214,89 +421,147 @@
     mapa.invalidateSize();
     if (ajusta && ms.length) mapa.fitBounds(L.featureGroup(ms).getBounds().pad(0.08), { maxZoom: 15 });
   }
+  function ressalta(codi, on) {
+    const m = marcadors.get(codi);
+    if (!m || codi === estat.sel) return;
+    const c = perCodi.get(codi);
+    m.setIcon(icona(c, on ? "hover" : "")).setZIndexOffset(on ? 900 : 0);
+    if (on && mapa.hasLayer(m)) m.openTooltip(); else m.closeTooltip();
+  }
 
   // ---------- Llistat ----------
-  const LIMIT = 120;
+  const LIMIT = 100;
   let mostrats = LIMIT;
   function ordenaLlistat(a) {
     const k = estat.llistatOrdre;
-    const cmp = { municipi: (x, y) => x.municipi.localeCompare(y.municipi, "ca") || x.nom.localeCompare(y.nom, "ca"),
-      nom: (x, y) => x.nom.localeCompare(y.nom, "ca"), llocs: (x, y) => y.llocs - x.llocs }[k];
+    const cmp = {
+      municipi: (x, y) => x._muni.localeCompare(y._muni, "ca") || x._nom.localeCompare(y._nom, "ca"),
+      nom: (x, y) => x._nom.localeCompare(y._nom, "ca"),
+      llocs: (x, y) => y.llocs - x.llocs,
+      distancia: (x, y) => (x._dist ?? 1e9) - (y._dist ?? 1e9),
+    }[k];
     return [...a].sort(cmp);
+  }
+  function serveisCurts(c) {
+    const s = [];
+    if (c.f.menjador_aut) s.push(["menjador", "Menjador"]);
+    if (c.f.transport) s.push(["transport", "Transport"]);
+    if (c.f.banc_llibres) s.push(["llibres", "Banc de llibres"]);
+    if (c.f.jornada_continua) s.push(["rellotge", "Jornada contínua"]);
+    return s.map(([i, t]) => `<span class="servei">${ic(i)}${t}</span>`).join("");
   }
   function pintaLlistat() {
     const p = $("#panell");
     if (!filtrats.length) {
-      p.innerHTML = `<div class="buit"><span class="etiqueta">Cap centre</span><p>No hi ha cap centre que complisca tots els filtres.</p><button class="boto" data-accio="neteja">Netejar filtres</button></div>`;
+      p.innerHTML = `<div class="buit"><span class="etiqueta">Cap centre</span><h3>No hi ha resultats</h3><p>Cap centre compleix tots els filtres alhora. Prova a llevar-ne algun.</p><button class="boto" data-accio="neteja">Netejar els filtres</button></div>`;
       return;
     }
-    const llista = ordenaLlistat(filtrats).slice(0, mostrats);
+    const llistaC = ordenaLlistat(filtrats).slice(0, mostrats);
+    const opcions = [["municipi", "Municipi"], ["nom", "Nom"], ["llocs", "Més grans"], ...(estat.origen ? [["distancia", "Més a prop"]] : [])];
     p.innerHTML = `
       <div class="llistat">
-        <div class="llistat__cap"><span class="kicker">${filtrats.length} resultats</span>
-          <select id="ordre-llistat" aria-label="Ordenar">
-            <option value="municipi"${estat.llistatOrdre === "municipi" ? " selected" : ""}>Per municipi</option>
-            <option value="nom"${estat.llistatOrdre === "nom" ? " selected" : ""}>Per nom</option>
-            <option value="llocs"${estat.llistatOrdre === "llocs" ? " selected" : ""}>Per llocs</option>
-          </select></div>
-        <ol>${llista.map((c) => `<li><button class="item" data-codi="${c.codi}">
-          <span class="item__nom"><i class="m m--${regimInfo(c.regim).cls}"></i>${esc(c.nom)}</span>
-          <span class="item__meta">${esc(c.tipus)} · ${esc(c.municipi)}</span>
-          <span class="item__tags">${c.f.menjador_aut ? '<span class="tag">Menjador</span>' : ""}${c.f.transport ? '<span class="tag">Transport</span>' : ""}${c.f.banc_llibres ? '<span class="tag">Banc llibres</span>' : ""}${c.f.jornada_continua ? '<span class="tag">Jornada contínua</span>' : ""}</span>
+        <div class="llistat__cap">
+          <label>Ordena per
+            <select id="ordre-llistat">${opcions.map(([k, t]) => `<option value="${k}"${estat.llistatOrdre === k ? " selected" : ""}>${t}</option>`).join("")}</select>
+          </label>
+        </div>
+        <ol>${llistaC.map((c) => `<li><button class="item" data-codi="${c.codi}">
+          <i class="m m--${regimInfo(c.regim).cls}" title="${esc(c.regim)}"></i>
+          <span class="item__nom">${esc(c._nom)}</span>
+          <span class="item__dist">${c._dist != null ? km(c._dist) : ""}</span>
+          <span class="item__meta">${esc(c.tipus)} · ${esc(c._muni)} · ${esc(regimInfo(c.regim).curt)}</span>
+          <span class="item__serveis">${serveisCurts(c)}</span>
         </button></li>`).join("")}</ol>
-        ${filtrats.length > mostrats ? `<button class="boto mes" data-accio="mes">Mostrar més (${filtrats.length - mostrats})</button>` : ""}
+        ${filtrats.length > mostrats ? `<button class="boto mes" data-accio="mes">Mostrar ${Math.min(LIMIT, filtrats.length - mostrats)} més</button>` : ""}
+        <div class="peu-panell"><p class="font">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}.</p></div>
       </div>`;
   }
 
   // ---------- Fitxa ----------
-  function htmlSeccio(s) {
-    let cos;
-    if (s.tipus === "kv") {
-      cos = s.files.length ? `<dl class="kv">${s.files.map(([k, v]) => {
-        let val;
-        if (s.sino) val = `<span class="si-no si-no--${v ? "si" : "no"}">${v ? "Sí" : "No"}</span>`;
-        else if (k === "Correu") val = `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
-        else if (k === "Web") val = `<a href="${esc(v)}" target="_blank" rel="noopener">${esc(v.replace(/^https?:\/\//, ""))}</a>`;
-        else if (k === "Telèfon") val = `<a href="tel:${esc(v)}">${esc(v)}</a>`;
-        else val = esc(v);
-        return `<dt>${esc(k)}</dt><dd>${val}</dd>`;
-      }).join("")}</dl>` : "";
-    } else if (s.tipus === "llista") {
-      cos = s.items.length ? `<ul class="llista">${s.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : "";
-    } else if (s.tipus === "etiquetes") {
-      cos = s.items.length ? `<div class="etiquetes">${s.items.map((i) => `<span>${esc(i)}</span>`).join("")}</div>` : "";
-    } else {
-      const td = (v, i) => `<td${s.num.includes(i) ? ' class="n"' : ""}>${esc(v)}</td>`;
-      cos = s.files.length ? `<table class="mini"><thead><tr>${s.cap.map((h, i) => `<th${s.num.includes(i) ? ' class="n"' : ""}>${esc(h)}</th>`).join("")}</tr></thead>
-        <tbody>${s.files.map((f) => `<tr>${f.map(td).join("")}</tr>`).join("")}</tbody>
-        ${s.peu ? `<tfoot><tr>${s.peu.map(td).join("")}</tr></tfoot>` : ""}</table>` : "";
-    }
-    return `<section class="seccio"><h2>${esc(s.titol)}</h2>${cos || '<p class="sense">Sense dades</p>'}</section>`;
+  function rajola(icona, titol, si, sub) {
+    return `<div class="rajola${si ? "" : " rajola--no"}">${ic(icona || "cap", "ic--l")}<div><b>${esc(titol)}</b><small>${esc(sub || (si ? "Sí" : "No"))}</small></div></div>`;
   }
-
-  function pintaFitxa(c) {
+  function htmlFitxa(c) {
     const r = regimInfo(c.regim);
-    $("#panell").innerHTML = `
+    const accions = [
+      c.lat ? `<a class="accio accio--roig" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener">${ic("ruta")}Com arribar</a>` : "",
+      c.telefon ? `<a class="accio" href="tel:${esc(c.telefon)}">${ic("telefon")}Trucar</a>` : "",
+      c.web ? `<a class="accio" href="${esc(c.web)}" target="_blank" rel="noopener">${ic("web")}Web</a>` : "",
+      c.correu ? `<a class="accio" href="mailto:${esc(c.correu)}">${ic("correu")}Correu</a>` : "",
+    ].join("");
+
+    const menjSub = c.f.menjador_aut ? "Sí, autoritzat" : c.f.menjador ? "Sí, sense autorització" : "No";
+    const internat = c.serveis.find((s) => /^Internat/.test(s));
+    const rajoles = [
+      rajola("menjador", "Menjador", c.f.menjador, menjSub),
+      rajola("transport", "Transport escolar", c.f.transport),
+      rajola("llibres", "Banc de llibres", c.f.banc_llibres),
+      rajola("rellotge", "Jornada contínua", c.f.jornada_continua, c.f.jornada_continua ? "Sí, de 9 a 14 h" : "No"),
+      rajola("nadó", "Aula de dos anys", c.f.aula_2anys),
+      rajola("internat", "Internat", c.f.internat, internat ? internat.replace("Internat ", "Sí, ") : "No"),
+      rajola("cafeteria", "Cafeteria", c.f.cafeteria),
+      rajola("estiu", "Cursos d'estiu", c.f.cursos_estiu),
+    ].join("");
+
+    const programes = c.programes.filter((p) => !/banc de llibres|Té aula de dos anys/.test(p));
+    const ling = c.linguistic.length ? c.linguistic.map(([etapa, prog, v, ca, a]) => {
+      const t = (v || 0) + (ca || 0) + (a || 0) || 1;
+      const seg = (cls, n, l) => (n ? `<i class="${cls}" style="width:${(n / t) * 100}%" title="${l} ${n}%">${n >= 12 ? n + "%" : ""}</i>` : "");
+      return `<div class="ling"><div class="ling__cap">${esc(etapa)}<span>${esc(prog)}</span></div>
+        ${t > 1 ? `<div class="barra">${seg("v", v, "Valencià")}${seg("c", ca, "Castellà")}${seg("a", a, "Anglés")}</div>` : `<p class="sense">Sense percentatges</p>`}</div>`;
+    }).join("") + `<div class="ling-llegenda"><span><i style="background:var(--roig)"></i>Valencià</span><span><i style="background:var(--negre)"></i>Castellà</span><span><i></i>Anglés</span></div>` : "";
+
+    const nivells = c.nivells.length ? `
+      <details class="detall"><summary>Veure unitats i llocs per nivell</summary>
+        <table class="mini"><thead><tr><th>Nivell</th><th class="n">Unitats</th><th class="n">Llocs</th></tr></thead>
+        <tbody>${c.nivells.map((n) => `<tr><td>${esc(n[0])}</td><td class="n">${n[1]}</td><td class="n">${n[2]}</td></tr>`).join("")}</tbody>
+        ${c.nivells.length > 1 ? `<tfoot><tr><td>Total</td><td class="n">${c.unitats}</td><td class="n">${c.llocs}</td></tr></tfoot>` : ""}</table>
+      </details>` : "";
+
+    const dades = [["Codi", c.codi], ["Denominació", c.generica], ["Tipus", c.tipus], ["Règim", c.regim], ["Titular", c.titular], ["CIF", c.cif], ["Comarca", c._comarca], ["Fax", c.fax]]
+      .filter((f) => f[1]).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+
+    return `
       <article class="fitxa">
         <div class="fitxa__nav">
-          <button class="enllac" data-accio="torna">← Tornar al llistat</button>
-          <button class="boto boto--roig" data-accio="pdf-fitxa">Descarregar PDF</button>
+          <button class="enllac" data-accio="torna">${ic("enrere", "ic--s")}Tots els centres</button>
+          <button class="boto" data-accio="pdf-fitxa">${ic("descarrega", "ic--s")}PDF</button>
         </div>
         <header class="fitxa__cap">
           <span class="etiqueta">${esc(c.tipus)}</span>
-          <span class="kicker">${esc(r.curt)} · ${esc(c.municipi)} · ${esc(c.codi)}</span>
-          <h1>${esc(c.nom)}</h1>
-          ${c.generica && c.generica.trim() !== c.nom ? `<p class="fitxa__generica">${esc(c.generica)}</p>` : ""}
+          <span class="kicker">${esc(r.curt)} · ${esc(c._muni)}</span>
+          <h1>${esc(c._nom)}</h1>
+          <p class="fitxa__adreca">${ic("pin", "ic--s")}<span>${esc(c.adreca)}, ${esc(c.cp)} ${esc(c._muni)}${c._dist != null ? ` · <b>a ${km(c._dist)}</b>` : ""}</span></p>
+          ${c.telefon ? `<p class="fitxa__adreca">${ic("telefon", "ic--s")}<span>${esc(c.telefon)}</span></p>` : ""}
         </header>
-        <div class="resum">
-          <div><b class="${c.f.menjador_aut ? "si" : ""}">${c.f.menjador_aut ? "Sí" : c.f.menjador ? "Altre" : "No"}</b><span>Menjador</span></div>
-          <div><b class="${c.f.transport ? "si" : ""}">${siNo(c.f.transport)}</b><span>Transport</span></div>
-          <div><b>${c.llocs}</b><span>Llocs actius</span></div>
-        </div>
-        ${seccions(c).map(htmlSeccio).join("")}
-        <p class="font">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}. <a href="${fitxaOficial(c)}" target="_blank" rel="noopener">Fitxa oficial a Conselleria</a></p>
+        ${accions ? `<div class="accions">${accions}</div>` : ""}
+
+        <section class="seccio"><h2>Serveis</h2><div class="rajoles">${rajoles}</div>
+          ${c.f.menjador && !c.f.menjador_aut ? `<p class="nota">Té menjador però no consta com a menjador escolar autoritzat per Conselleria.</p>` : ""}
+        </section>
+
+        <section class="seccio"><h2>Què s'hi estudia</h2>
+          ${c.etapes.length ? `<div class="etiquetes">${c.etapes.map((e) => `<span>${esc(e)}</span>`).join("")}</div>` : `<p class="sense">Sense dades</p>`}
+          ${c.llocs ? `<p class="nota">${c.unitats} unitats i ${c.llocs} llocs escolars actius.</p>` : ""}
+          ${nivells}
+        </section>
+
+        <section class="seccio"><h2>Horari</h2>
+          ${c.jornada.length ? `<ul class="llista">${c.jornada.map((j) => `<li>${esc(j)}</li>`).join("")}</ul>` : `<p class="sense">Sense dades</p>`}
+        </section>
+
+        ${ling ? `<section class="seccio"><h2>Llengües d'ensenyament</h2>${ling}</section>` : ""}
+
+        ${programes.length ? `<section class="seccio"><h2>Programes i característiques</h2><ul class="llista">${programes.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></section>` : ""}
+
+        ${c.installacions.length ? `<section class="seccio"><h2>Instal·lacions</h2><div class="etiquetes etiquetes--suau">${c.installacions.map((i) => `<span>${esc(i)}</span>`).join("")}</div></section>` : ""}
+
+        ${c.idiomes.length ? `<section class="seccio"><h2>Idiomes</h2><div class="etiquetes etiquetes--suau">${c.idiomes.map((i) => `<span>${esc(i)}</span>`).join("")}</div></section>` : ""}
+
+        <section class="seccio"><h2>Dades administratives</h2><dl class="kv">${dades}</dl></section>
+
+        <p class="font" style="margin-top:18px">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}. <a href="${fitxaOficial(c)}" target="_blank" rel="noopener">Fitxa oficial a Conselleria</a></p>
       </article>`;
-    $("#panell").scrollTop = 0;
   }
 
   function selecciona(codi, { centra = true, vista } = {}) {
@@ -304,34 +569,35 @@
     if (!c) return;
     const anterior = estat.sel;
     estat.sel = codi;
-    if (anterior && marcadors.get(anterior)) { const pc = perCodi.get(anterior); marcadors.get(anterior).setIcon(icona(pc, false)).setZIndexOffset(0); }
+    if (anterior && marcadors.get(anterior)) marcadors.get(anterior).setIcon(icona(perCodi.get(anterior), "")).setZIndexOffset(0);
     const m = marcadors.get(codi);
     if (m) {
-      m.setIcon(icona(c, true)).setZIndexOffset(1000);
-      if (centra) capa.zoomToShowLayer(m, () => mapa.panTo(m.getLatLng()));
+      m.setIcon(icona(c, "sel")).setZIndexOffset(1000);
+      if (centra) capa.zoomToShowLayer(m, () => mapa.setView(m.getLatLng(), Math.max(mapa.getZoom(), 14)));
     }
-    pintaFitxa(c);
+    $("#panell").innerHTML = htmlFitxa(c);
+    $("#panell").scrollTop = 0;
     try { history.replaceState(null, "", "#centre=" + codi); } catch (_) { /* iframe sandbox */ }
     if (vista) posaVista(vista);
     else if (estretor() && document.body.dataset.vista === "mapa") posaVista("llistat");
   }
-  function desselecciona() {
+  function desselecciona(pinta = true) {
     const anterior = estat.sel;
     estat.sel = null;
-    if (anterior && marcadors.get(anterior)) marcadors.get(anterior).setIcon(icona(perCodi.get(anterior), false)).setZIndexOffset(0);
+    if (anterior && marcadors.get(anterior)) marcadors.get(anterior).setIcon(icona(perCodi.get(anterior), "")).setZIndexOffset(0);
     try { history.replaceState(null, "", location.pathname + location.search); } catch (_) { /* */ }
-    pintaLlistat();
+    if (pinta) pintaLlistat();
   }
 
   // ---------- Taula ----------
-  const colsVisibles = () => COLS.filter((c) => estat.cols.has(c.k));
+  const colsVisibles = () => [...COLS.filter((c) => estat.cols.has(c.k)), ...(estat.origen ? [DIST_COL] : [])];
   function filesTaula() {
     const { k, dir } = estat.ordre;
-    if (!k) return filtrats;
-    const col = COLS.find((c) => c.k === k);
+    if (!k) return estat.origen ? ordenaLlistat(filtrats) : filtrats;
+    const col = colsVisibles().find((c) => c.k === k) || COLS[1];
     return [...filtrats].sort((a, b) => {
       const x = col.v(a), y = col.v(b);
-      return (col.num ? (x ?? 0) - (y ?? 0) : String(x).localeCompare(String(y), "ca")) * dir;
+      return (col.num ? (x === "" ? 1e9 : x) - (y === "" ? 1e9 : y) : String(x).localeCompare(String(y), "ca")) * dir;
     });
   }
   function pintaTaula() {
@@ -346,7 +612,7 @@
   }
   function pintaMenuColumnes() {
     $("#columnes-menu").innerHTML = `<div class="desplegable__accions"><button class="enllac" data-accio="cols-totes">Totes</button><button class="enllac" data-accio="cols-defecte">Per defecte</button></div>` +
-      COLS.map((c) => `<label class="opcio"><input type="checkbox" data-col="${c.k}"${estat.cols.has(c.k) ? " checked" : ""}><span>${esc(c.l)}</span></label>`).join("");
+      `<div class="opcions">${COLS.map((c) => `<label class="opcio" style="grid-template-columns:20px 1fr"><input type="checkbox" data-col="${c.k}"${estat.cols.has(c.k) ? " checked" : ""}><span>${esc(c.l)}</span></label>`).join("")}</div>`;
   }
   function desaCols() { try { localStorage.setItem("cgt-centres-cols", JSON.stringify([...estat.cols])); } catch (_) { /* */ } }
 
@@ -368,24 +634,24 @@
     const cel = (v) => { const s = String(v ?? ""); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const linies = [cols.map((c) => cel(c.l)).join(";"), ...filesTaula().map((c) => cols.map((col) => cel(col.v(c))).join(";"))];
     descarrega(new Blob(["﻿" + linies.join("\r\n")], { type: "text/csv;charset=utf-8" }), nomFitxer("csv"));
-    avisa(`CSV descarregat: ${filtrats.length} centres`);
+    avisa(`CSV descarregat amb ${filtrats.length} centres`);
   }
   async function ambBoto(boto, fn) {
-    const text = boto.textContent;
-    boto.disabled = true; boto.textContent = "Preparant PDF…";
-    try { await fn(); } catch (e) { console.error(e); avisa("No s'ha pogut generar el PDF"); }
-    boto.disabled = false; boto.textContent = text;
+    const html = boto.innerHTML;
+    boto.disabled = true; boto.textContent = "Preparant…";
+    try { await fn(); avisa("PDF descarregat"); } catch (e) { console.error(e); avisa("No s'ha pogut generar el PDF"); }
+    boto.disabled = false; boto.innerHTML = html;
   }
 
   let temps;
   function avisa(t) {
     const a = $("#avis");
     a.textContent = t; a.hidden = false;
-    clearTimeout(temps); temps = setTimeout(() => (a.hidden = true), 2600);
+    clearTimeout(temps); temps = setTimeout(() => (a.hidden = true), 2800);
   }
 
-  // ---------- Vistes ----------
-  const estretor = () => window.matchMedia("(max-width: 860px)").matches;
+  // ---------- Vistes i calaix ----------
+  const estretor = () => window.matchMedia("(max-width: 760px)").matches;
   function posaVista(v) {
     if (v === "llistat" && !estretor()) v = "mapa";
     document.body.dataset.vista = v;
@@ -393,37 +659,87 @@
     if (v === "taula") pintaTaula();
     if (v === "mapa") setTimeout(() => mapa.invalidateSize(), 0);
   }
+  function obreCalaix() {
+    $("#calaix").hidden = false; $("#vel").hidden = false;
+    $("#obre-calaix").setAttribute("aria-expanded", "true");
+    pintaCalaix();
+    $("#tanca-calaix").focus();
+  }
+  function tancaCalaix() {
+    $("#calaix").hidden = true; $("#vel").hidden = true;
+    $("#obre-calaix").setAttribute("aria-expanded", "false");
+    $("#obre-calaix").focus();
+  }
+  function tancaMenus(excepte) {
+    for (const id of ["pop-etapa", "columnes"]) {
+      if (id === excepte) continue;
+      const menu = $(`#${id} .desplegable__menu`), b = $(`#${id} > button`);
+      if (!menu.hidden) { menu.hidden = true; b.setAttribute("aria-expanded", "false"); }
+    }
+  }
+  function commutaMenu(id, pinta) {
+    const menu = $(`#${id} .desplegable__menu`), b = $(`#${id} > button`);
+    const obre = menu.hidden;
+    tancaMenus(id);
+    if (obre) pinta();
+    menu.hidden = !obre; b.setAttribute("aria-expanded", obre);
+  }
 
   // ---------- Esdeveniments ----------
   function connecta() {
     let t;
-    $("#cerca").addEventListener("input", (e) => {
+    const cerca = $("#cerca");
+    cerca.addEventListener("input", (e) => {
+      pintaSugg(e.target.value);
       clearTimeout(t);
-      t = setTimeout(() => { estat.q = norm(e.target.value.trim()); mostrats = LIMIT; aplica(); }, 180);
+      t = setTimeout(() => { estat.q = norm(e.target.value.trim()); mostrats = LIMIT; aplica(); }, 250);
     });
-    $("#filtres").addEventListener("change", (e) => {
+    cerca.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); mouSugg(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); mouSugg(-1); }
+      else if (e.key === "Enter") { if (suggIdx >= 0) { e.preventDefault(); triaSugg(suggIdx); } else tancaSugg(); }
+      else if (e.key === "Escape") tancaSugg();
+    });
+    cerca.addEventListener("focus", () => { if (cerca.value.trim().length >= 2) pintaSugg(cerca.value); });
+    $("#suggeriments").addEventListener("mousedown", (e) => {
+      const li = e.target.closest(".suggeriment");
+      if (li) { e.preventDefault(); triaSugg(+li.dataset.i); }
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".cerca")) tancaSugg();
+      if (!e.target.closest(".desplegable")) tancaMenus();
+    });
+
+    $("#aprop").addEventListener("click", aprop);
+
+    // Xips ràpids, filtres actius i opcions
+    document.addEventListener("click", (e) => {
+      const xc = e.target.closest("[data-commuta]");
+      if (xc) return canvia(xc.dataset.commuta, xc.dataset.valor);
+      const tr = e.target.closest("[data-treu]");
+      if (tr) return canvia(tr.dataset.treu, tr.dataset.valor, false);
+    });
+    document.addEventListener("change", (e) => {
       const el = e.target;
-      if (el.id === "f-comarca") { estat.comarca = el.value; estat.municipi = ""; }
-      else if (el.id === "f-municipi") estat.municipi = el.value;
-      else if (el.dataset.grup) {
-        const set = estat[el.dataset.grup];
-        el.checked ? set.add(el.value) : set.delete(el.value);
-      } else return;
-      mostrats = LIMIT;
-      aplica();
+      if (el.id === "f-comarca") { estat.comarca = el.value; estat.municipi = ""; mostrats = LIMIT; return aplica(); }
+      if (el.id === "f-municipi") { estat.municipi = el.value; mostrats = LIMIT; return aplica(); }
+      if (el.dataset.grup) return canvia(el.dataset.grup, el.value, el.checked);
     });
-    $("#neteja").addEventListener("click", neteja);
-    $("#obre-filtres").addEventListener("click", () => { document.body.classList.add("filtres-oberts"); $("#obre-filtres").setAttribute("aria-expanded", "true"); });
-    const tanca = () => { document.body.classList.remove("filtres-oberts"); $("#obre-filtres").setAttribute("aria-expanded", "false"); };
-    $("#tanca-filtres").addEventListener("click", tanca);
-    $("#aplica-filtres").addEventListener("click", tanca);
+    $("#pop-etapa > button").addEventListener("click", () => commutaMenu("pop-etapa", pintaEtapes));
+    $("#neteja").addEventListener("click", () => neteja());
+    $("#obre-calaix").addEventListener("click", obreCalaix);
+    $("#tanca-calaix").addEventListener("click", tancaCalaix);
+    $("#aplica-calaix").addEventListener("click", () => { tancaCalaix(); if (estretor()) posaVista("llistat"); });
+    $("#vel").addEventListener("click", tancaCalaix);
+    $("#neteja-calaix").addEventListener("click", () => neteja());
 
     document.querySelector(".pestanyes").addEventListener("click", (e) => {
       const b = e.target.closest("button[data-vista]");
       if (b) posaVista(b.dataset.vista);
     });
 
-    $("#panell").addEventListener("click", (e) => {
+    const panell = $("#panell");
+    panell.addEventListener("click", (e) => {
       const item = e.target.closest(".item");
       if (item) return selecciona(item.dataset.codi);
       const acc = e.target.closest("[data-accio]");
@@ -432,11 +748,13 @@
       if (a === "torna") desselecciona();
       else if (a === "mes") { mostrats += LIMIT; pintaLlistat(); }
       else if (a === "neteja") neteja();
-      else if (a === "pdf-fitxa") ambBoto(acc, () => window.CGTPDF.fitxa(perCodi.get(estat.sel), seccions(perCodi.get(estat.sel)), META));
+      else if (a === "pdf-fitxa") { const c = perCodi.get(estat.sel); ambBoto(acc, () => window.CGTPDF.fitxa(c, seccions(c), META)); }
     });
-    $("#panell").addEventListener("change", (e) => {
+    panell.addEventListener("change", (e) => {
       if (e.target.id === "ordre-llistat") { estat.llistatOrdre = e.target.value; pintaLlistat(); }
     });
+    panell.addEventListener("mouseover", (e) => { const it = e.target.closest(".item"); if (it && !it.contains(e.relatedTarget)) ressalta(it.dataset.codi, true); });
+    panell.addEventListener("mouseout", (e) => { const it = e.target.closest(".item"); if (it && !it.contains(e.relatedTarget)) ressalta(it.dataset.codi, false); });
 
     $("#taula thead").addEventListener("click", (e) => {
       const th = e.target.closest("th");
@@ -450,21 +768,17 @@
       if (tr) selecciona(tr.dataset.codi, { vista: estretor() ? "llistat" : "mapa" });
     });
 
-    const menu = $("#columnes-menu"), botoCols = $("#columnes > button");
-    botoCols.addEventListener("click", () => {
-      const obert = menu.hidden;
-      if (obert) pintaMenuColumnes();
-      menu.hidden = !obert; botoCols.setAttribute("aria-expanded", obert);
-    });
-    document.addEventListener("click", (e) => { if (!menu.hidden && !e.target.closest("#columnes")) { menu.hidden = true; botoCols.setAttribute("aria-expanded", "false"); } });
-    menu.addEventListener("change", (e) => {
+    const menuCols = $("#columnes-menu");
+    $("#columnes > button").addEventListener("click", () => commutaMenu("columnes", pintaMenuColumnes));
+    menuCols.addEventListener("change", (e) => {
       const k = e.target.dataset.col;
       if (!k) return;
+      e.stopPropagation();
       e.target.checked ? estat.cols.add(k) : estat.cols.delete(k);
       if (!estat.cols.size) estat.cols.add("nom");
       desaCols(); pintaTaula();
     });
-    menu.addEventListener("click", (e) => {
+    menuCols.addEventListener("click", (e) => {
       const a = e.target.closest("[data-accio]")?.dataset.accio;
       if (!a) return;
       estat.cols = new Set(a === "cols-totes" ? COLS.map((c) => c.k) : COLS.filter((c) => c.def).map((c) => c.k));
@@ -476,42 +790,42 @@
       window.CGTPDF.taula(colsVisibles(), filesTaula(), descripcioFiltres(), META, nomFitxer("pdf"))));
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        if (!menu.hidden) { menu.hidden = true; return; }
-        if (document.body.classList.contains("filtres-oberts")) return tanca();
-        if (estat.sel) desselecciona();
-      }
+      if (e.key !== "Escape") return;
+      if (!$("#calaix").hidden) return tancaCalaix();
+      tancaMenus();
+      if (estat.sel && document.activeElement !== cerca) desselecciona();
     });
   }
 
-  function neteja() {
+  function neteja(pinta = true) {
     Object.assign(estat, { q: "", comarca: "", municipi: "" });
     ["regim", "flags", "etapes", "tipus", "inst"].forEach((k) => estat[k].clear());
     $("#cerca").value = "";
-    $("#f-comarca").value = "";
     mostrats = LIMIT;
-    aplica();
+    if (pinta) aplica(); else aplica({ ajusta: false });
   }
 
   // ---------- Inici ----------
   async function inicia() {
-    const resp = await fetch("data/centres.json");
-    const dades = await resp.json();
+    const dades = await (await fetch("data/centres.json")).json();
     CENTRES = dades.centres;
+    const perMuni = new Map();
     CENTRES.forEach((c) => {
+      c._nom = bonic(c.nom);
+      c._muni = bonic(c.municipi);
+      c._comarca = bonic(c.comarca);
+      c._dist = null;
       c._text = norm([c.nom, c.generica, c.municipi, c.codi, c.adreca, c.cp, c.comarca, c.telefon].join(" "));
       perCodi.set(c.codi, c);
+      const m = perMuni.get(c.municipi) || { k: c.municipi, nom: c._muni, comarca: c.comarca, n: 0, _n: norm(c.municipi) };
+      m.n++; perMuni.set(c.municipi, m);
     });
+    MUNIS = [...perMuni.values()].sort((a, b) => a.nom.localeCompare(b.nom, "ca"));
     const [a, m, d] = dades.actualitzat.split("-");
     META = {
       font: dades.font, data: dades.actualitzat, dataTxt: `${d}/${m}/${a}`, total: CENTRES.length,
       inst: [...new Set(CENTRES.flatMap((c) => c.installacions))].sort((x, y) => x.localeCompare(y, "ca")),
     };
-    $("#recompte-total").textContent = `de ${CENTRES.length}`;
-    $("#font-dades").textContent = META.font;
-    $("#data-dades").textContent = META.dataTxt;
-    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
-    $("#f-comarca").innerHTML = `<option value="">Totes</option>` + comarques.map((c) => `<option>${esc(c)}</option>`).join("");
 
     iniciaMapa();
     connecta();
@@ -522,6 +836,6 @@
 
   window.addEventListener("DOMContentLoaded", () => inicia().catch((e) => {
     console.error(e);
-    document.getElementById("panell").innerHTML = '<div class="buit"><span class="etiqueta">Error</span><p>No s\'han pogut carregar les dades.</p></div>';
+    document.getElementById("panell").innerHTML = '<div class="buit"><span class="etiqueta">Error</span><h3>No s\'han pogut carregar les dades</h3><p>Torna-ho a provar d\'ací a una estona.</p></div>';
   }));
 })();

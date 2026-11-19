@@ -4,120 +4,106 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mapa de centres educatius · CGT Castelló</title>
-<meta name="description" content="Mapa i fitxes dels centres educatius de la província de Castelló: menjador, transport, banc de llibres, jornada, ensenyaments i més.">
+<meta name="description" content="Busca centres educatius de la província de Castelló i consulta si tenen menjador, transport, banc de llibres, jornada contínua i què s'hi estudia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="estil.css?v=4">
+<link rel="stylesheet" href="estil.css?v=8">
 </head>
 <body data-vista="mapa">
 
 <div class="app">
-  <!-- Barra superior (sin cabecera: va dentro de un iframe) -->
-  <div class="barra">
-    <div class="recompte">
-      <span class="recompte__xifra" id="recompte">—</span>
-      <span class="recompte__text">centres<br><span id="recompte-total">de —</span></span>
+  <!-- Eines (sense capçalera: la pàgina va dins d'un iframe) -->
+  <div class="eines">
+    <div class="eines__fila">
+      <div class="cerca">
+        <svg class="ic cerca__ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13zM20 20l-4.8-4.8"/></svg>
+        <input type="search" id="cerca" placeholder="Busca municipi o centre…" autocomplete="off"
+               role="combobox" aria-expanded="false" aria-controls="suggeriments" aria-autocomplete="list" aria-label="Busca un municipi o un centre">
+        <ul class="suggeriments" id="suggeriments" role="listbox" hidden></ul>
+      </div>
+      <button class="boto boto--aprop" id="aprop" type="button" title="Ordena els centres pels més pròxims a tu">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 7.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z"/></svg>
+        <span>A prop meu</span>
+      </button>
+      <nav class="pestanyes" role="tablist" aria-label="Vista">
+        <button role="tab" data-vista="mapa" aria-selected="true">Mapa</button>
+        <button role="tab" data-vista="llistat" class="nomes-mobil" aria-selected="false">Llistat</button>
+        <button role="tab" data-vista="taula" aria-selected="false">Taula</button>
+      </nav>
     </div>
-    <nav class="pestanyes" role="tablist" aria-label="Vista">
-      <button role="tab" data-vista="mapa" aria-selected="true">Mapa</button>
-      <button role="tab" data-vista="llistat" class="nomes-mobil">Llistat</button>
-      <button role="tab" data-vista="taula">Taula</button>
-    </nav>
-    <button class="boto boto--filtres" id="obre-filtres" aria-controls="filtres" aria-expanded="false">
-      Filtres <span class="boto__n" id="n-filtres" hidden>0</span>
-    </button>
+
+    <div class="eines__fila eines__fila--filtres">
+      <div class="rapids" id="rapids"></div>
+      <div class="desplegable" id="pop-etapa">
+        <button class="xip xip--menu" type="button" aria-expanded="false" aria-controls="pop-etapa-menu">
+          <span id="pop-etapa-txt">Etapa</span>
+          <svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="desplegable__menu" id="pop-etapa-menu" hidden></div>
+      </div>
+      <button class="xip xip--mes" id="obre-calaix" type="button" aria-controls="calaix" aria-expanded="false">
+        <svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Més filtres <span class="xip__n" id="n-mes" hidden>0</span>
+      </button>
+    </div>
+
+    <div class="resum-filtres">
+      <p class="recompte"><b id="recompte">—</b> <span id="recompte-txt">centres</span></p>
+      <div class="actius" id="actius"></div>
+      <button class="enllac" id="neteja" type="button" hidden>Netejar-ho tot</button>
+    </div>
   </div>
 
   <div class="cos">
-    <!-- Filtros -->
-    <aside class="filtres" id="filtres" aria-label="Filtres">
-      <div class="filtres__cap">
-        <span class="kicker">Filtres</span>
-        <button class="enllac" id="neteja">Netejar</button>
-        <button class="tanca nomes-mobil" id="tanca-filtres" aria-label="Tancar filtres">✕</button>
+    <section class="vista-mapa" aria-label="Mapa">
+      <div id="mapa"></div>
+      <div class="llegenda" aria-hidden="true">
+        <span><i class="m m--public"></i>Públic</span>
+        <span><i class="m m--concertat"></i>Concertat</span>
+        <span><i class="m m--privat"></i>Privat</span>
       </div>
-      <div class="filtres__scroll">
-        <label class="camp">
-          <span class="camp__lbl">Cerca</span>
-          <input type="search" id="cerca" placeholder="Nom, municipi, codi, adreça…" autocomplete="off">
-        </label>
+    </section>
 
-        <fieldset class="grup">
-          <legend>Règim</legend>
-          <div class="xips" id="f-regim"></div>
-        </fieldset>
+    <section class="panell" id="panell" aria-live="polite"></section>
 
-        <div class="camps2">
-          <label class="camp">
-            <span class="camp__lbl">Comarca</span>
-            <select id="f-comarca"><option value="">Totes</option></select>
-          </label>
-          <label class="camp">
-            <span class="camp__lbl">Municipi</span>
-            <select id="f-municipi"><option value="">Tots</option></select>
-          </label>
+    <section class="vista-taula" aria-label="Taula">
+      <div class="taula-eines">
+        <p class="taula-eines__txt">Hi ha <b id="n-taula">0</b> centres amb els filtres actuals. Fes clic en una fila per a veure'n la fitxa.</p>
+        <div class="desplegable" id="columnes">
+          <button class="boto" type="button" aria-expanded="false" aria-controls="columnes-menu">Columnes</button>
+          <div class="desplegable__menu desplegable__menu--dreta" id="columnes-menu" hidden></div>
         </div>
-
-        <fieldset class="grup">
-          <legend>Serveis i programes</legend>
-          <p class="ajuda">Mostra només els centres que tenen <strong>tot</strong> el que marques.</p>
-          <div class="opcions" id="f-flags"></div>
-        </fieldset>
-
-        <fieldset class="grup">
-          <legend>Ensenyament</legend>
-          <div class="opcions" id="f-etapes"></div>
-        </fieldset>
-
-        <fieldset class="grup">
-          <legend>Tipus de centre</legend>
-          <div class="opcions" id="f-tipus"></div>
-        </fieldset>
-
-        <fieldset class="grup">
-          <legend>Instal·lacions</legend>
-          <div class="opcions" id="f-inst"></div>
-        </fieldset>
-
-        <p class="font">Font: <span id="font-dades"></span>. Dades del <span id="data-dades"></span>.</p>
+        <button class="boto" id="exporta-csv" type="button">
+          <svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Descarregar CSV
+        </button>
+        <button class="boto boto--roig" id="exporta-pdf" type="button">
+          <svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Descarregar PDF
+        </button>
       </div>
-      <div class="filtres__peu nomes-mobil">
-        <button class="boto boto--roig" id="aplica-filtres">Veure <span id="n-aplica">0</span> centres</button>
+      <div class="taula-scroll">
+        <table class="taula" id="taula"><thead></thead><tbody></tbody></table>
       </div>
-    </aside>
-
-    <!-- Mapa + panel -->
-    <main class="principal">
-      <section class="vista-mapa" aria-label="Mapa">
-        <div id="mapa"></div>
-        <div class="llegenda" aria-hidden="true">
-          <span><i class="m m--public"></i>Públic</span>
-          <span><i class="m m--concertat"></i>Concertat</span>
-          <span><i class="m m--privat"></i>Privat</span>
-        </div>
-      </section>
-
-      <section class="panell" id="panell" aria-live="polite"></section>
-
-      <section class="vista-taula" aria-label="Taula">
-        <div class="taula-eines">
-          <div class="desplegable" id="columnes">
-            <button class="boto" aria-expanded="false" aria-controls="columnes-menu">Columnes</button>
-            <div class="desplegable__menu" id="columnes-menu" hidden></div>
-          </div>
-          <span class="espai"></span>
-          <button class="boto" id="exporta-csv">Exportar CSV</button>
-          <button class="boto boto--roig" id="exporta-pdf">Exportar PDF</button>
-        </div>
-        <div class="taula-scroll">
-          <table class="taula" id="taula"><thead></thead><tbody></tbody></table>
-        </div>
-      </section>
-    </main>
+    </section>
   </div>
 </div>
+
+<!-- Calaix de filtres -->
+<div class="vel" id="vel" hidden></div>
+<aside class="calaix" id="calaix" aria-label="Més filtres" hidden>
+  <div class="calaix__cap">
+    <h2>Més filtres</h2>
+    <button class="tanca" id="tanca-calaix" type="button" aria-label="Tancar">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="calaix__cos" id="calaix-cos"></div>
+  <div class="calaix__peu">
+    <button class="enllac" id="neteja-calaix" type="button">Netejar</button>
+    <button class="boto boto--roig" id="aplica-calaix" type="button">Veure <span id="n-calaix">0</span> centres</button>
+  </div>
+</aside>
 
 <div class="avis" id="avis" role="status" hidden></div>
 
@@ -125,7 +111,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
-<script src="pdf.js?v=4" defer></script>
-<script src="app.js?v=4" defer></script>
+<script src="pdf.js?v=8" defer></script>
+<script src="app.js?v=8" defer></script>
 </body>
 </html>
