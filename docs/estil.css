@@ -40,7 +40,7 @@ a:hover { color: var(--roig); }
 
 /* ---------- Estructura ---------- */
 .app { height: 100vh; display: flex; flex-direction: column; }
-.eines { padding: 14px 16px 0; border-bottom: var(--linia) solid var(--negre); background: var(--blanc); position: relative; z-index: 1000; }
+.eines { padding: 14px 16px 0; border-bottom: var(--linia) solid var(--negre); background: var(--blanc); position: relative; z-index: 1100; }
 .eines__fila { display: flex; align-items: center; gap: 10px; }
 .eines__fila + .eines__fila { margin-top: 10px; }
 .cos { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr var(--panell); }
