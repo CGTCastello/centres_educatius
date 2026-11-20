@@ -193,8 +193,11 @@
   function actius() {
     const a = [];
     for (const t of estat.cerca.toks) a.push(["cerca", t.raw, t.neg ? `Sense «${t.txt}»` : `«${t.txt}»`]);
-    for (const k of estat.comarques) a.push(["comarques", k, bonic(k)]);
-    for (const k of estat.municipis) a.push(["municipis", k, bonic(k)]);
+    // amb més de 3 triats, una sola etiqueta que els lleva tots
+    if (estat.comarques.size > 3) a.push(["comarques", "*", `${estat.comarques.size} comarques`]);
+    else for (const k of estat.comarques) a.push(["comarques", k, bonic(k)]);
+    if (estat.municipis.size > 3) a.push(["municipis", "*", `${estat.municipis.size} municipis`]);
+    else for (const k of estat.municipis) a.push(["municipis", k, bonic(k)]);
     for (const r of estat.regim) a.push(["regim", r, regimInfo(r).curt]);
     for (const f of estat.flags) a.push(["flags", f, flag(f).curt]);
     for (const e of estat.etapes) a.push(["etapes", e, e]);
@@ -216,7 +219,8 @@
     } else {
       const set = estat[grup];
       const posa = on === undefined ? !set.has(valor) : on;
-      posa ? set.add(valor) : set.delete(valor);
+      if (valor === "*") set.clear();
+      else posa ? set.add(valor) : set.delete(valor);
       if (grup === "comarques" && estat.comarques.size) {
         // deixa només els municipis de les comarques triades
         for (const m of [...estat.municipis]) if (!estat.comarques.has(MUNIS.find((x) => x.k === m)?.comarca)) estat.municipis.delete(m);
@@ -251,7 +255,7 @@
   function pintaMenuComarques() {
     const menu = $("#sel-comarca-menu"), sc = menu.scrollTop;
     const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
-    menu.innerHTML = `<div class="desplegable__accions"><button class="enllac" type="button" data-buida="comarques">Totes</button><span class="menu-ajuda">Marca'n una o més</span></div>
+    menu.innerHTML = `<div class="desplegable__accions"><button class="enllac" type="button" data-marca="comarques">Marcar-les totes</button><button class="enllac" type="button" data-buida="comarques">Desmarcar</button></div>
       <div class="opcions">${comarques.map((k) => opcio("comarques", k, bonic(k), compta("comarques", (c) => c.comarca === k), estat.comarques.has(k))).join("")}</div>`;
     menu.scrollTop = sc;
   }
@@ -898,6 +902,13 @@
     document.addEventListener("click", (e) => {
       const b = e.target.closest("[data-buida]");
       if (b) { estat[b.dataset.buida].clear(); mostrats = LIMIT; aplica(); }
+      const m = e.target.closest("[data-marca]");
+      if (m) {
+        // marca totes les opcions que es veuen ara a la llista
+        const grup = m.dataset.marca;
+        m.closest(".desplegable__menu").querySelectorAll(`input[data-grup="${grup}"]`).forEach((i) => estat[grup].add(i.value));
+        mostrats = LIMIT; aplica();
+      }
     });
     $("#neteja").addEventListener("click", () => neteja());
     $("#obre-calaix").addEventListener("click", obreCalaix);
