@@ -147,7 +147,7 @@
 
   // ---------- Estat ----------
   const estat = {
-    q: "", regim: new Set(), comarca: "", municipi: "",
+    cerca: { toks: [], inc: [], exc: [] }, regim: new Set(), comarques: new Set(), municipis: new Set(),
     flags: new Set(), etapes: new Set(), tipus: new Set(), inst: new Set(),
     sel: null, origen: null, ordre: { k: null, dir: 1 }, llistatOrdre: "municipi",
     cols: new Set(COLS.filter((c) => c.def).map((c) => c.k)),
@@ -161,11 +161,24 @@
   const $ = (s, el = document) => el.querySelector(s);
 
   // ---------- Filtres ----------
+  // Cerca: paraules = han d'aparéixer totes; -paraula = exclou; "frase entre cometes"
+  function analitzaCerca(raw) {
+    const toks = [];
+    (raw.match(/-?"[^"]*"?|\S+/g) || []).forEach((t) => {
+      let neg = false, txt = t;
+      if (txt.startsWith("-") && txt.length > 1) { neg = true; txt = txt.slice(1); }
+      txt = txt.replace(/"/g, "").trim();
+      const n = norm(txt);
+      if (n) toks.push({ raw: t, neg, txt, n });
+    });
+    return { toks, inc: toks.filter((t) => !t.neg).map((t) => t.n), exc: toks.filter((t) => t.neg).map((t) => t.n) };
+  }
   function passa(c, ignora) {
-    if (estat.q && !c._text.includes(estat.q)) return false;
+    for (const t of estat.cerca.inc) if (!c._text.includes(t)) return false;
+    for (const t of estat.cerca.exc) if (c._text.includes(t)) return false;
     if (ignora !== "regim" && estat.regim.size && !estat.regim.has(c.regim)) return false;
-    if (estat.comarca && c.comarca !== estat.comarca) return false;
-    if (estat.municipi && c.municipi !== estat.municipi) return false;
+    if (ignora !== "comarques" && estat.comarques.size && !estat.comarques.has(c.comarca)) return false;
+    if (ignora !== "municipis" && estat.municipis.size && !estat.municipis.has(c.municipi)) return false;
     if (ignora !== "tipus" && estat.tipus.size && !estat.tipus.has(c.tipus)) return false;
     if (ignora !== "etapes" && estat.etapes.size && !c.etapes.some((e) => estat.etapes.has(e))) return false;
     for (const f of estat.flags) if (!c.f[f]) return false;
@@ -179,9 +192,9 @@
   }
   function actius() {
     const a = [];
-    if (estat.q) a.push(["q", "", `«${$("#cerca").value.trim()}»`]);
-    if (estat.municipi) a.push(["municipi", "", bonic(estat.municipi)]);
-    if (estat.comarca) a.push(["comarca", "", bonic(estat.comarca)]);
+    for (const t of estat.cerca.toks) a.push(["cerca", t.raw, t.neg ? `Sense «${t.txt}»` : `«${t.txt}»`]);
+    for (const k of estat.comarques) a.push(["comarques", k, bonic(k)]);
+    for (const k of estat.municipis) a.push(["municipis", k, bonic(k)]);
     for (const r of estat.regim) a.push(["regim", r, regimInfo(r).curt]);
     for (const f of estat.flags) a.push(["flags", f, flag(f).curt]);
     for (const e of estat.etapes) a.push(["etapes", e, e]);
@@ -195,13 +208,19 @@
   }
 
   function canvia(grup, valor, on) {
-    if (["q", "municipi", "comarca"].includes(grup)) {
-      estat[grup] = "";
-      if (grup === "q") $("#cerca").value = "";
+    if (grup === "cerca") {
+      const toks = estat.cerca.toks.map((t) => t.raw);
+      toks.splice(toks.indexOf(valor), 1);
+      $("#cerca").value = toks.join(" ");
+      estat.cerca = analitzaCerca($("#cerca").value);
     } else {
       const set = estat[grup];
       const posa = on === undefined ? !set.has(valor) : on;
       posa ? set.add(valor) : set.delete(valor);
+      if (grup === "comarques" && estat.comarques.size) {
+        // deixa només els municipis de les comarques triades
+        for (const m of [...estat.municipis]) if (!estat.comarques.has(MUNIS.find((x) => x.k === m)?.comarca)) estat.municipis.delete(m);
+      }
     }
     mostrats = LIMIT;
     aplica();
@@ -215,17 +234,35 @@
     </label>`;
   const compta = (grup, prova) => CENTRES.filter((c) => passa(c, grup) && prova(c)).length;
 
+  const textSel = (set, tots, sing, plural) => !set.size ? tots : set.size === 1 ? bonic([...set][0]) : `${set.size} ${plural}`;
   function pintaOn() {
-    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
-    const munis = MUNIS.filter((m) => !estat.comarca || m.comarca === estat.comarca);
-    $("#f-comarca").innerHTML = `<option value="">Totes les comarques</option>${comarques.map((c) => `<option value="${esc(c)}"${c === estat.comarca ? " selected" : ""}>${esc(bonic(c))}</option>`).join("")}`;
-    $("#f-municipi").innerHTML = `<option value="">Tots els municipis</option>${munis.map((m) => `<option value="${esc(m.k)}"${m.k === estat.municipi ? " selected" : ""}>${esc(m.nom)}</option>`).join("")}`;
-    $("#f-comarca").closest(".selector").classList.toggle("actiu", !!estat.comarca);
-    $("#f-municipi").closest(".selector").classList.toggle("actiu", !!estat.municipi);
+    const llarg = estretor();
+    $("#sel-comarca-txt").textContent = textSel(estat.comarques, llarg ? "Totes les comarques" : "Totes", "comarca", "comarques");
+    $("#sel-municipi-txt").textContent = textSel(estat.municipis, llarg ? "Tots els municipis" : "Tots", "municipi", "municipis");
+    $("#sel-comarca > button").classList.toggle("actiu", estat.comarques.size > 0);
+    $("#sel-municipi > button").classList.toggle("actiu", estat.municipis.size > 0);
+    if (!$("#sel-comarca-menu").hidden) pintaMenuComarques();
+    if (!$("#sel-municipi-menu").hidden) pintaMenuMunicipis();
     $("#f-regim").innerHTML = REGIMS.map((r) => {
       const on = estat.regim.has(r.k);
       return `<button class="xip" type="button" data-commuta="regim" data-valor="${esc(r.k)}" aria-pressed="${on}"><i class="m m--${r.cls}"></i>${r.curt} <span class="opcio__n">${compta("regim", (c) => c.regim === r.k)}</span></button>`;
     }).join("");
+  }
+  function pintaMenuComarques() {
+    const menu = $("#sel-comarca-menu"), sc = menu.scrollTop;
+    const comarques = [...new Set(CENTRES.map((c) => c.comarca))].sort((x, y) => x.localeCompare(y, "ca"));
+    menu.innerHTML = `<div class="desplegable__accions"><button class="enllac" type="button" data-buida="comarques">Totes</button><span class="menu-ajuda">Marca'n una o més</span></div>
+      <div class="opcions">${comarques.map((k) => opcio("comarques", k, bonic(k), compta("comarques", (c) => c.comarca === k), estat.comarques.has(k))).join("")}</div>`;
+    menu.scrollTop = sc;
+  }
+  function pintaMenuMunicipis() {
+    const llista = $("#sel-municipi-llista"), sc = llista.scrollTop;
+    const q = norm($("#cerca-muni").value.trim());
+    const munis = MUNIS.filter((m) => (!estat.comarques.size || estat.comarques.has(m.comarca)) && (!q || m._n.includes(q)));
+    llista.innerHTML = munis.length
+      ? munis.map((m) => opcio("municipis", m.k, m.nom, compta("municipis", (c) => c.municipi === m.k), estat.municipis.has(m.k))).join("")
+      : `<p class="menu-ajuda" style="padding:6px 0">Cap municipi</p>`;
+    llista.scrollTop = sc;
   }
   function pintaRapids() {
     pintaOn();
@@ -295,10 +332,16 @@
     if (!q || i < 0) return esc(text);
     return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
   }
+  const PISTA = `<li class="suggeriments__pista" role="presentation">Consell: escriu <b>-paraula</b> per a excloure-la. Per exemple, <b>-música</b> o <b>-"escola infantil"</b>.</li>`;
   function pintaSugg(qraw) {
-    const q = norm(qraw.trim());
+    const an = analitzaCerca(qraw);
+    const q = an.inc.join(" ");
     const ul = $("#suggeriments");
-    if (q.length < 2) { ul.hidden = true; $("#cerca").setAttribute("aria-expanded", "false"); sugg = []; return; }
+    if (q.length < 2) {
+      sugg = [];
+      if (an.exc.length || !qraw.trim()) { ul.hidden = true; $("#cerca").setAttribute("aria-expanded", "false"); return; }
+      ul.innerHTML = PISTA; ul.hidden = false; return;
+    }
     const munis = MUNIS.filter((m) => m._n.split(/[\s'-]+/).some((w) => w.startsWith(q)) || m._n.startsWith(q)).slice(0, 5);
     const centres = CENTRES.filter((c) => norm(c._nom).includes(q) || c.codi.startsWith(q)).slice(0, 6);
     sugg = [...munis.map((m) => ({ t: "m", m })), ...centres.map((c) => ({ t: "c", c }))];
@@ -311,6 +354,7 @@
         (munis.length ? `<li class="suggeriments__grup" role="presentation">Municipis</li>` + munis.map((m) => `<li class="suggeriment" role="option" id="sg-${i}" data-i="${i++}" aria-selected="false">${ic("pin", "ic--s")}<b>${marca(m.nom, q)}</b><span>${m.n} ${m.n === 1 ? "centre" : "centres"}</span></li>`).join("") : "") +
         (centres.length ? `<li class="suggeriments__grup" role="presentation">Centres</li>` + centres.map((c) => `<li class="suggeriment" role="option" id="sg-${i}" data-i="${i++}" aria-selected="false"><i class="m m--${regimInfo(c.regim).cls}" style="width:10px;height:10px;outline:0;border-width:${c.regim === "Privat no concertat" ? 2 : 0}px"></i><b>${marca(c._nom, q)}</b><span>${esc(c._muni)}</span></li>`).join("") : "");
     }
+    if (!an.exc.length) ul.innerHTML += PISTA;
     ul.hidden = false;
     $("#cerca").setAttribute("aria-expanded", "true");
   }
@@ -318,11 +362,12 @@
     const s = sugg[i];
     if (!s) return;
     tancaSugg();
-    $("#cerca").value = "";
-    estat.q = "";
+    // es queden només les exclusions que hi haguera
+    $("#cerca").value = estat.cerca.toks.filter((t) => t.neg).map((t) => t.raw).join(" ");
+    estat.cerca = analitzaCerca($("#cerca").value);
     if (s.t === "m") {
-      estat.municipi = s.m.k;
-      estat.comarca = "";
+      estat.municipis = new Set([s.m.k]);
+      estat.comarques.clear();
       mostrats = LIMIT;
       aplica();
     } else {
@@ -689,7 +734,7 @@
     // Comarques apilades
     const perCom = new Map();
     F.forEach((c) => { const o = perCom.get(c.comarca) || { k: c.comarca, l: c._comarca, total: 0, per: {} }; o.total++; o.per[c.regim] = (o.per[c.regim] || 0) + 1; perCom.set(c.comarca, o); });
-    const comarques = [...perCom.values()].sort((a, b) => b.total - a.total).map((o) => ({ ...o, actiu: estat.comarca === o.k }));
+    const comarques = [...perCom.values()].sort((a, b) => b.total - a.total).map((o) => ({ ...o, actiu: estat.comarques.has(o.k) }));
 
     // Etapes
     const etapes = ETAPES.map((e) => ({ k: e, l: e, n: F.filter((c) => c.etapes.includes(e)).length, actiu: estat.etapes.has(e) })).filter((f) => f.n);
@@ -704,7 +749,7 @@
 
     // Tipus i municipis
     const tipus = [...compte(F, (c) => c.tipus)].sort((a, b) => b[1] - a[1]).map(([k, n]) => ({ k, l: k, n, actiu: estat.tipus.has(k) }));
-    const munis = [...compte(F, (c) => c.municipi)].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ca")).slice(0, 10).map(([k, n]) => ({ k, l: bonic(k), n, actiu: estat.municipi === k }));
+    const munis = [...compte(F, (c) => c.municipi)].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ca")).slice(0, 10).map(([k, n]) => ({ k, l: bonic(k), n, actiu: estat.municipis.has(k) }));
 
     el.innerHTML = `
       <div class="xifres">
@@ -718,24 +763,22 @@
         <div class="targetes">
           ${targeta("Per règim", "Centres públics, concertats i privats", seg, true)}
           ${targeta("Serveis", "Percentatge de centres que en tenen", serveis)}
-          ${targeta("Per comarca", "Centres per comarca i règim", llegendaRegim() + barresRegim(comarques, { filtra: "comarca", ample: 130 }))}
+          ${targeta("Per comarca", "Centres per comarca i règim", llegendaRegim() + barresRegim(comarques, { filtra: "comarques", ample: 130 }))}
           ${targeta("Per etapa", "Centres que imparteixen cada etapa", barres(etapes, { filtra: "etapes" }))}
           ${targeta("Llocs escolars per etapa", "Llocs actius autoritzats", barres(llocsFiles))}
           ${targeta("Tipus de centre", "", barres(tipus, { filtra: "tipus", ample: 190 }))}
-          ${targeta("Municipis amb més centres", N > 10 ? "Els 10 primers" : "", barres(munis, { filtra: "municipi", ample: 150 }))}
+          ${targeta("Municipis amb més centres", N > 10 ? "Els 10 primers" : "", barres(munis, { filtra: "municipis", ample: 150 }))}
         </div>
         <p class="font">Font: ${esc(META.font)}. Dades del ${esc(META.dataTxt)}. Els llocs i les unitats són els actius autoritzats per Conselleria.</p>
       </div>`;
   }
   function filtraDesDeXifres(grup, v) {
-    if (grup === "comarca") { estat.comarca = estat.comarca === v ? "" : v; estat.municipi = ""; mostrats = LIMIT; return aplica(); }
-    if (grup === "municipi") { estat.municipi = estat.municipi === v ? "" : v; mostrats = LIMIT; return aplica(); }
     canvia(grup, v);
   }
 
   // ---------- Exportació ----------
   function nomFitxer(ext) {
-    const base = estat.municipi || estat.comarca || "castello";
+    const base = estat.municipis.size === 1 ? [...estat.municipis][0] : estat.comarques.size === 1 ? [...estat.comarques][0] : "castello";
     return `centres-${norm(base).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${META.data}.${ext}`;
   }
   function descarrega(blob, nom) {
@@ -789,7 +832,7 @@
     $("#obre-calaix").focus();
   }
   function tancaMenus(excepte) {
-    for (const id of ["pop-etapa", "columnes"]) {
+    for (const id of ["pop-etapa", "columnes", "sel-comarca", "sel-municipi"]) {
       if (id === excepte) continue;
       const menu = $(`#${id} .desplegable__menu`), b = $(`#${id} > button`);
       if (!menu.hidden) { menu.hidden = true; b.setAttribute("aria-expanded", "false"); }
@@ -810,7 +853,7 @@
     cerca.addEventListener("input", (e) => {
       pintaSugg(e.target.value);
       clearTimeout(t);
-      t = setTimeout(() => { estat.q = norm(e.target.value.trim()); mostrats = LIMIT; aplica(); }, 250);
+      t = setTimeout(() => { estat.cerca = analitzaCerca(e.target.value); mostrats = LIMIT; aplica(); }, 250);
     });
     cerca.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") { e.preventDefault(); mouSugg(1); }
@@ -843,11 +886,19 @@
     });
     document.addEventListener("change", (e) => {
       const el = e.target;
-      if (el.id === "f-comarca") { estat.comarca = el.value; estat.municipi = ""; mostrats = LIMIT; return aplica(); }
-      if (el.id === "f-municipi") { estat.municipi = el.value; mostrats = LIMIT; return aplica(); }
       if (el.dataset.grup) return canvia(el.dataset.grup, el.value, el.checked);
     });
     $("#pop-etapa > button").addEventListener("click", () => commutaMenu("pop-etapa", pintaEtapes));
+    $("#sel-comarca > button").addEventListener("click", () => commutaMenu("sel-comarca", pintaMenuComarques));
+    $("#sel-municipi > button").addEventListener("click", () => {
+      commutaMenu("sel-municipi", pintaMenuMunicipis);
+      if (!$("#sel-municipi-menu").hidden && !estretor()) $("#cerca-muni").focus();
+    });
+    $("#cerca-muni").addEventListener("input", pintaMenuMunicipis);
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-buida]");
+      if (b) { estat[b.dataset.buida].clear(); mostrats = LIMIT; aplica(); }
+    });
     $("#neteja").addEventListener("click", () => neteja());
     $("#obre-calaix").addEventListener("click", obreCalaix);
     $("#tanca-calaix").addEventListener("click", tancaCalaix);
@@ -939,8 +990,8 @@
   }
 
   function neteja(pinta = true) {
-    Object.assign(estat, { q: "", comarca: "", municipi: "" });
-    ["regim", "flags", "etapes", "tipus", "inst"].forEach((k) => estat[k].clear());
+    estat.cerca = analitzaCerca("");
+    ["regim", "comarques", "municipis", "flags", "etapes", "tipus", "inst"].forEach((k) => estat[k].clear());
     $("#cerca").value = "";
     mostrats = LIMIT;
     if (pinta) aplica(); else aplica({ ajusta: false });
@@ -956,7 +1007,7 @@
       c._muni = bonic(c.municipi);
       c._comarca = bonic(c.comarca);
       c._dist = null;
-      c._text = norm([c.nom, c.generica, c.municipi, c.codi, c.adreca, c.cp, c.comarca, c.telefon].join(" "));
+      c._text = norm([c.nom, c.generica, c.tipus, c.municipi, c.codi, c.adreca, c.cp, c.comarca, c.telefon].join(" "));
       perCodi.set(c.codi, c);
       const m = perMuni.get(c.municipi) || { k: c.municipi, nom: c._muni, comarca: c.comarca, n: 0, _n: norm(c.municipi) };
       m.n++; perMuni.set(c.municipi, m);

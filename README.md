@@ -34,7 +34,10 @@ Página en valencià con el estilo de CGT Castelló, pensada para ir dentro de u
 `iframe` en cgtcastello.org (sin cabecera propia):
 
 - **Buscador** con sugerencias de municipios y centros, y botón **«A prop meu»**
-  para ordenar por distancia.
+  para ordenar por distancia. Admite **búsqueda negativa**: `-música` excluye los
+  centros que contienen esa palabra; se pueden combinar (`vila-real -privat`) y usar
+  comillas para frases (`-"escola infantil"`).
+- **Comarca y municipi** con selección múltiple (casillas), con buscador de municipios.
 - **Filtros rápidos** (menjador, transport, banc de llibres, jornada contínua,
   només públics, etapa) y panel **«Més filtres»** (comarca, municipi, règim,
   todos los servicios, tipus de centre, instal·lacions). Los filtros activos se

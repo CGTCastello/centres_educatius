@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="estil.css?v=16">
+<link rel="stylesheet" href="estil.css?v=18">
 </head>
 <body data-vista="mapa">
 
@@ -27,7 +27,7 @@
     <div class="eines__fila">
       <div class="cerca">
         <svg class="ic cerca__ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13zM20 20l-4.8-4.8"/></svg>
-        <input type="search" id="cerca" placeholder="Busca municipi o centre…" autocomplete="off"
+        <input type="search" id="cerca" placeholder="Busca o exclou amb -paraula" autocomplete="off"
                role="combobox" aria-expanded="false" aria-controls="suggeriments" aria-autocomplete="list" aria-label="Busca un municipi o un centre">
         <ul class="suggeriments" id="suggeriments" role="listbox" hidden></ul>
       </div>
@@ -45,10 +45,22 @@
 
     <div class="filtres-mobil" id="filtres-mobil">
     <div class="eines__fila eines__fila--on">
-      <label class="selector"><span class="selector__lbl">Comarca</span>
-        <select id="f-comarca"><option value="">Totes</option></select></label>
-      <label class="selector"><span class="selector__lbl">Municipi</span>
-        <select id="f-municipi"><option value="">Tots</option></select></label>
+      <div class="desplegable multi" id="sel-comarca">
+        <button class="selector" type="button" aria-expanded="false" aria-controls="sel-comarca-menu">
+          <span class="selector__lbl">Comarca</span><span class="selector__txt" id="sel-comarca-txt">Totes</span><svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="desplegable__menu" id="sel-comarca-menu" hidden></div>
+      </div>
+      <div class="desplegable multi" id="sel-municipi">
+        <button class="selector" type="button" aria-expanded="false" aria-controls="sel-municipi-menu">
+          <span class="selector__lbl">Municipi</span><span class="selector__txt" id="sel-municipi-txt">Tots</span><svg class="ic ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="desplegable__menu" id="sel-municipi-menu" hidden>
+          <input type="search" class="menu-cerca" id="cerca-muni" placeholder="Busca un municipi…" autocomplete="off" aria-label="Busca un municipi">
+          <div class="desplegable__accions"><button class="enllac" type="button" data-buida="municipis">Tots</button><span class="menu-ajuda">Marca'n un o més</span></div>
+          <div class="opcions" id="sel-municipi-llista"></div>
+        </div>
+      </div>
       <div class="regims" id="f-regim" role="group" aria-label="Règim"></div>
     </div>
 
@@ -136,7 +148,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
-<script src="pdf.js?v=16" defer></script>
-<script src="app.js?v=16" defer></script>
+<script src="pdf.js?v=18" defer></script>
+<script src="app.js?v=18" defer></script>
 </body>
 </html>

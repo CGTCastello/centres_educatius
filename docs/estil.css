@@ -471,3 +471,23 @@ body[data-vista="xifres"] .vista-xifres { display: block; }
   .barra { grid-template-columns: minmax(96px, 38%) 1fr 48px; gap: 8px; }
   .pestanyes button { padding: 0 8px; font-size: 15px; }
 }
+
+/* Selectors múltiples de comarca i municipi */
+.multi .selector { gap: 6px; padding: 0 10px; cursor: pointer; font: inherit; color: var(--negre); }
+.multi .selector .selector__lbl { padding: 0; }
+.selector__txt { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.multi .selector.actiu .selector__txt, .multi .selector.actiu .ic { color: var(--blanc); }
+.multi .selector:hover:not(.actiu) { background: var(--fons-suau); }
+.multi .desplegable__menu { width: 300px; }
+#sel-municipi-menu { display: flex; flex-direction: column; max-height: 60vh; overflow: hidden; padding-top: 10px; }
+#sel-municipi-menu[hidden] { display: none; }
+#sel-municipi-llista { overflow-y: auto; min-height: 0; }
+.menu-cerca { width: 100%; height: 38px; border: 2px solid var(--negre); padding: 0 10px; margin-bottom: 6px; font-size: 14px; appearance: none; }
+.menu-ajuda { font-size: 12.5px; color: var(--gris-web); margin-left: auto; }
+.suggeriments__pista { padding: 10px 14px 6px; margin-top: 4px; border-top: 1px solid var(--linia-web); font-size: 12.5px; color: var(--gris-web); }
+.suggeriments__pista b { color: var(--negre); }
+@media (max-width: 760px) {
+  .multi { min-width: 0; }
+  .multi .selector { width: 100%; }
+  .selector__txt { max-width: none; flex: 1; font-size: 13px; }
+}
